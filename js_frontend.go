@@ -37,7 +37,9 @@ func newGame(term *terminal) {
 	g := &game{}
 	term.DrawBufferInit()
 
+	//term.g = g //if we need access to g down the line
 	g.Term = term
+	g.player = position{1,1}
 	g.gameeventLoop()
 	//term.eventLoop()
 	//initial draw
@@ -52,6 +54,7 @@ func newGame(term *terminal) {
 var SaveError string
 
 type terminal struct {
+	//g 			*game
 	DrawBuffer          []TermCell
 	//to avoid drawing what hasn't changed
 	drawBackBuffer      []TermCell
