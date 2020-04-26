@@ -118,11 +118,11 @@ var MapNames = map[rune]string{
 	'Φ':  "magic",
 	'☻':  "dreaming",
 	'♫':  "footsteps",
-	'#':  "wall",
+	'#':  "hash",
 	'@':  "player",
 	'§':  "fog",
 	'+':  "door",
-	'.':  "ground",
+	'.':  "dot",
 	'"':  "foliage",
 	'•':  "tick",
 	'●':  "rock",
@@ -159,7 +159,7 @@ func getImage(cell TermCell) *image.RGBA {
 	if im, ok := TileImgs["letter-"+string(cell.R)]; ok {
 		pngImg = im
 		//handle longer names
-	} else if im, ok := TileImgs["map-"+MapNames[cell.R]]; ok {
+	} else if im, ok := TileImgs["letter-"+MapNames[cell.R]]; ok {
 		pngImg = im
 	}
 		//Go writes else on the same line

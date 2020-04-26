@@ -8,12 +8,21 @@ import (
 type game struct {
 	Term *terminal;
 	player position;
+	Map *gamemap
 }
 
 type position struct {
 	X int
 	Y int
 }
+
+func (g *game) GameInit() {
+	m := &gamemap{width: 20, height:20}
+	m.InitMap()
+	m.generateArenaMap()
+	g.Map = m
+}
+
 
 //seriously, not in std?
 func Abs(x int) int {
@@ -32,13 +41,26 @@ func (pos position) Distance(to position) int {
 	return deltaY
 }
 
+func (g *game) renderMap(){
+	for x := 0; x <= g.Map.width; x++ {
+		for y := 0; y <= g.Map.height; y++ {
+			g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, Color{255,255,255,255},Color{0,0,0,255}, true)
+		}
+	}
+}
+
 
 func (g *game) render(){
 	// g.Term.SetCell(2,2,'N',Color{255,0,0, 255}, Color{0,0,0,255}, true)
 	// g.Term.SetCell(3,2,'e',Color{88,110,17, 255}, Color{0,0,0,255}, true)
 	// g.Term.SetCell(4,2, 'o', Color{255,255,255, 255}, Color{0,0,255,255}, true)
 	// g.Term.SetCell(5,2, 'n', Color{0,255, 0, 255}, Color{0,0,0,255}, true)
+
+	g.renderMap()
+
+
 	g.Term.SetCell(g.player.X, g.player.Y, '@', Color{255, 255, 255, 255}, Color{0,0,0,255}, true)
+
 }
 
 func (g *game) HandlePlayerEvent() () {
