@@ -19,6 +19,7 @@ var (
 var (
 	ColorFg = Color{0,0,0, 255}
 	ColorBg = Color{0,0,0, 255}
+	ColorHighlightDark = Color{7, 54, 66, 255} //solarized base02
 )
 
 
@@ -111,16 +112,60 @@ type TermInput struct {
 //TileImages saved as byte to work everywhere
 var TileImgs map[string][]byte
 
+var MapNames = map[rune]string{
+	'¤':  "frontier",
+	'√':  "hit",
+	'Φ':  "magic",
+	'☻':  "dreaming",
+	'♫':  "footsteps",
+	'#':  "wall",
+	'@':  "player",
+	'§':  "fog",
+	'+':  "door",
+	'.':  "ground",
+	'"':  "foliage",
+	'•':  "tick",
+	'●':  "rock",
+	'×':  "times",
+	',':  "comma",
+	'}':  "rbrace",
+	'%':  "percent",
+	':':  "colon",
+	'\\': "backslash",
+	'~':  "tilde",
+	'☼':  "sun",
+	'*':  "asterisc",
+	'—':  "hbar",
+	'/':  "slash",
+	'|':  "vbar",
+	'∞':  "kill",
+	' ':  "space",
+	'[':  "lbracket",
+	']':  "rbracket",
+	')':  "rparen",
+	'(':  "lparen",
+	'>':  "stairs",
+	'Δ':  "portal",
+	'!':  "potion",
+	';':  "semicolon",
+	'_':  "stone",
+}
+
+
 //both tiles and ascii are essentially images
 func getImage(cell TermCell) *image.RGBA {
 	var pngImg []byte
 	pngImg = TileImgs["map-notile"]
 	if im, ok := TileImgs["letter-"+string(cell.R)]; ok {
 		pngImg = im
-	//Go writes else on the same line
-	} else {
-		log.Printf("Could not find tile: %s", string(cell.R));
+		//handle longer names
+	} else if im, ok := TileImgs["map-"+MapNames[cell.R]]; ok {
+		pngImg = im
 	}
+		//Go writes else on the same line
+	// } else {
+	// 	log.Printf("Could not find tile: %v", cell.R);
+	// }
 
 	buf := make([]byte, len(pngImg))
 	base64.StdEncoding.Decode(buf, pngImg) // TODO: check error
