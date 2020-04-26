@@ -38,10 +38,11 @@ func newGame(term *terminal) {
 	term.DrawBufferInit()
 
 	g.Term = term
-	term.eventLoop()
+	g.gameeventLoop()
+	//term.eventLoop()
 	//initial draw
 	term.Clear()
-	term.render()
+	g.render()
 	term.Flush()
 	//block
 	term.PressAnyKey()
@@ -290,19 +291,6 @@ func (term *terminal) FlushCallback(t js.Value) {
 }
 
 
-//actually, game-specific stuff
-func (term *terminal) render(){
-	term.SetCell(2,2,'N',Color{255,0,0, 255}, Color{0,0,0,255}, true)
-	term.SetCell(3,2,'e',Color{88,110,17, 255}, Color{0,0,0,255}, true)
-	term.SetCell(4,2, 'o', Color{255,255,255, 255}, Color{0,0,255,255}, true)
-	term.SetCell(5,2, 'n', Color{0,255, 0, 255}, Color{0,0,0,255}, true)
-}
-
-func (term *terminal) highlightPos(pos position) {
-	c := term.GetCell(pos.X, pos.Y)
-	term.SetCell(pos.X, pos.Y, c.R, c.Fg, ColorHighlightDark, c.InMap)
-	//term.SetCell(pos.X, pos.Y, 'H', Color{255, 255, 255, 255}, Color{7, 54, 66, 255}, true)
-}
 
 // ----------------------------
 //input
@@ -317,17 +305,10 @@ func (term *terminal) PollEvent() (in TermInput) {
 	return in
 }
 
-func (term *terminal) HandlePlayerEvent() () {
-	in := term.PollEvent()
-	log.Printf("Event: %v", in);
-	if in.mouse {
-		pos := position{X: in.mouseX, Y: in.mouseY}
-
-		term.Clear()
-		term.render()
-		term.highlightPos(pos)
-		term.Flush()
-	}
+func (term *terminal) highlightPos(pos position) {
+	c := term.GetCell(pos.X, pos.Y)
+	term.SetCell(pos.X, pos.Y, c.R, c.Fg, ColorHighlightDark, c.InMap)
+	//term.SetCell(pos.X, pos.Y, 'H', Color{255, 255, 255, 255}, Color{7, 54, 66, 255}, true)
 }
 
 //blocks, waiting for input such as mouse move (or a key)
@@ -342,13 +323,3 @@ func (term *terminal) PressAnyKey() error {
 		}
 	}
 }
-
-
-//main loop
-func (term *terminal) eventLoop(){
-	//loop:
-		for {
-			term.HandlePlayerEvent()
-			//continue
-		}
-	}
