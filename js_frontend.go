@@ -9,8 +9,10 @@ import (
 	"log"
 
 	"syscall/js"
+	"errors"
 )
 
+//init the game
 func main() {
 	//create a new terminal
 	term := &terminal{}
@@ -26,9 +28,9 @@ func main() {
 			term.ReqAnimFrame()
 		}
 	}()
-	for {
-		newGame(term)
-	}
+	//for {
+	newGame(term)
+	//}
 }
 
 func newGame(term *terminal) {
@@ -36,9 +38,13 @@ func newGame(term *terminal) {
 	term.DrawBufferInit()
 
 	g.Term = term
+	term.eventLoop()
+	//initial draw
 	term.Clear()
-	term.SetCell(2,2,'A',Color{255,255,255, 255}, Color{0,0,0,255}, true)
+	term.render()
 	term.Flush()
+	//block
+	term.PressAnyKey()
 
 }
 
@@ -182,6 +188,7 @@ func (term *terminal) Init() error {
 			if x != term.mousepos.X || y != term.mousepos.Y {
 				term.mousepos.X = x
 				term.mousepos.Y = y
+				//log.Printf("Mouse pos: %d, %d", x,y);
 				if len(ch) < cap(ch) {
 					ch <- TermInput{mouse: true, mouseX: x, mouseY: y, button: -1}
 				}
@@ -194,11 +201,13 @@ func (term *terminal) Init() error {
 	return nil
 }
 
+
+//goroutines and channels here!
 var ch chan TermInput
 var interrupt chan bool
 
 func init() {
-	ch = make(chan TermInput, 5)
+	ch = make(chan TermInput, 5) //buffered
 	interrupt = make(chan bool)
 	Flushdone = make(chan bool)
 	ReqFrame = make(chan bool)
@@ -266,3 +275,65 @@ func (term *terminal) FlushCallback(t js.Value) {
 	//stub
 	Flushdone <- true
 }
+
+
+//actually, game-specific stuff
+func (term *terminal) render(){
+	term.SetCell(2,2,'N',Color{255,0,0, 255}, Color{0,0,0,255}, true)
+	term.SetCell(3,2,'e',Color{88,110,17, 255}, Color{0,0,0,255}, true)
+	term.SetCell(4,2, 'o', Color{255,255,255, 255}, Color{0,0,255,255}, true)
+	term.SetCell(5,2, 'n', Color{0,255, 0, 255}, Color{0,0,0,255}, true)
+}
+
+func (term *terminal) highlightPos(pos position) {
+	term.SetCell(pos.X, pos.Y, 'H', Color{255, 255, 255, 255}, Color{7, 54, 66, 255}, true)
+}
+
+// ----------------------------
+//input
+func (term *terminal) PollEvent() (in TermInput) {
+	select {
+	case in = <-ch:
+	case in.interrupt = <-interrupt:
+	}
+
+	//log.Printf("Poll event: %v", in);
+	
+	return in
+}
+
+func (term *terminal) HandlePlayerEvent() () {
+	in := term.PollEvent()
+	log.Printf("Event: %v", in);
+	if in.mouse {
+		pos := position{X: in.mouseX, Y: in.mouseY}
+
+		term.Clear()
+		term.render()
+		term.highlightPos(pos)
+		term.Flush()
+	}
+}
+
+//blocks, waiting for input such as mouse move (or a key)
+func (term *terminal) PressAnyKey() error {
+	for {
+		e := term.PollEvent()
+		if e.interrupt {
+			return errors.New("interrupted")
+		}
+		if e.key != "" || (e.mouse && e.button != -1) {
+			return nil
+		}
+	}
+}
+
+
+//main loop
+func (term *terminal) eventLoop(){
+	//loop:
+		for {
+			term.HandlePlayerEvent()
+			//continue
+		}
+	}
