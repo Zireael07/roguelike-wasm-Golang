@@ -88,6 +88,19 @@ func (term *terminal) SetCell(x, y int, r rune, fg, bg Color, inmap bool) {
 	term.DrawBuffer[i] = c
 }
 
+//original
+func (term *terminal) GetCell(x,y int) TermCell {
+	var c TermCell
+	i := term.GetIndex(x, y)
+	if i >= TermHeight*TermWidth {
+		//dummy
+		c = TermCell{R: ' ', Fg: ColorFg, Bg: ColorBg, InMap: false}
+		return c
+	}
+
+	return term.DrawBuffer[i]
+}
+
 func (term *terminal) DrawBufferInit() {
 	if len(term.DrawBuffer) == 0 {
 		term.DrawBuffer = make([]TermCell, TermHeight*TermWidth)
@@ -286,7 +299,9 @@ func (term *terminal) render(){
 }
 
 func (term *terminal) highlightPos(pos position) {
-	term.SetCell(pos.X, pos.Y, 'H', Color{255, 255, 255, 255}, Color{7, 54, 66, 255}, true)
+	c := term.GetCell(pos.X, pos.Y)
+	term.SetCell(pos.X, pos.Y, c.R, c.Fg, ColorHighlightDark, c.InMap)
+	//term.SetCell(pos.X, pos.Y, 'H', Color{255, 255, 255, 255}, Color{7, 54, 66, 255}, true)
 }
 
 // ----------------------------
