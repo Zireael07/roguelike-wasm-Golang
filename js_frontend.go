@@ -5,7 +5,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"log"
 
 	"syscall/js"
@@ -282,10 +282,11 @@ func (term *terminal) DrawFrame() {
 //'t' was args[0] in the callback
 func (term *terminal) FlushCallback(t js.Value) {
 	//performance tracking
-	now := t.Float()
-	tdiff := now - tmark
-	js.Global().Get("document").Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 1000/tdiff))
-	tmark = now
+	// now := t.Float()
+	// tdiff := now - tmark
+	// //NOTE: if we remove fps from page, this NEEDS to be commented out!!!
+	// js.Global().Get("document").Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 1000/tdiff))
+	// tmark = now
 
 	 //do the damn drawing
 	 term.DrawFrame()
