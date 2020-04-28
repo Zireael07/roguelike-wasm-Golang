@@ -40,7 +40,7 @@ func newGame(term *terminal) {
 	//term.g = g //if we need access to g down the line
 	g.Term = term
 	g.GameInit()
-	g.player = position{1,1}
+	//make the game run!
 	g.gameeventLoop()
 	//term.eventLoop()
 	//initial draw
