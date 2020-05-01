@@ -37,6 +37,7 @@ func (g *game) ECSInit() {
 	npc.AddComponent("position", PositionComponent{Pos:position{X:10, Y:10}})
 	npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
 	npc.AddComponent("blocker", BlockerComponent{})
+	npc.AddComponent("NPC", NPCComponent{})
 
 	g.entities = append(g.entities, player)
 	g.entities = append(g.entities, npc)
@@ -62,6 +63,12 @@ func (pos position) Distance(to position) int {
 
 func (pos position) sub(other position) position {
 	return position{pos.X - other.X, pos.Y - other.Y}
+}
+
+func (pos position) isValid(g *game) bool {
+	if pos.X >= 0 && pos.Y >= 0 && pos.X <= g.Map.width && pos.Y <= g.Map.height {
+		return true
+	} else { return false } 
 }
 
 func (g *game) clearFOV() {
@@ -109,6 +116,48 @@ func (g *game) render(){
 	}
 }
 
+type Path struct {
+	game      *game
+	neighbors [8]position
+}
+
+func (p *Path) Cost(from, to position) int {
+	return 1
+}
+
+func (p *Path) Estimation(from, to position) int {
+	return from.Distance(to)
+}
+
+func (p *Path) Neighbors(pos position) []position {
+	candidates := [8]position{position{-1,-1}, position{1,-1}, position{-1,1}, position{1,1}, position{0,-1}, position{-1,0}, position{0,1}, position{1,0}}
+	var res []position
+	for x := 0; x < 8; x++ {
+		neighbour := position{pos.X + candidates[x].X, pos.Y + candidates[x].Y};
+		if (neighbour.isValid(p.game) && !p.game.Map.tiles[neighbour.X][neighbour.Y].IsWall()){
+			//add to array
+			res = append(res, neighbour)
+		}
+	}
+	return res;
+}
+
+
+func (g *game) takeTurn(e *GameEntity){
+	from := e.Components["position"].(PositionComponent).Pos
+	to := g.entities[0].Components["position"].(PositionComponent).Pos
+
+	mp := &Path{game: g}
+
+	path, _, found := AstarPath(mp, from, to)
+	if !found {
+		return
+	}
+	log.Printf("Path: %v", path);
+
+	//return path
+}
+
 func (g *game) getAllBlockers(tg position) *GameEntity {
 	// := aka walrus aka type inference doesn't work for nil
 	var ret *GameEntity = nil
@@ -145,6 +194,20 @@ func (g *game) MovePlayer (ent *GameEntity, dir position){
 	//bit of a dance because we're not using pointers to Components
 	ent.RemoveComponent("position")
 	ent.AddComponent("position", posComponent)
+	g.onPlayerMove(posComponent)
+}
+
+func (g *game) onPlayerMove(posComp PositionComponent){
+	//AI gets to move
+	for _, e := range g.entities {
+		if e != nil {
+			if e.HasComponents([]string{"NPC"}) {
+				g.takeTurn(e)
+			}
+		}
+	}
+
+
 	//g.player = pos
 	g.Term.Clear()
 	//recalc FOV
@@ -168,7 +231,7 @@ func (g *game) MovePlayer (ent *GameEntity, dir position){
 			return true
 		} else { return false } 
 	}
-	g.pp_FOV(int32(posComponent.Pos.X), int32(posComponent.Pos.Y), 5, opaque, visit, inmap)	
+	g.pp_FOV(int32(posComp.Pos.X), int32(posComp.Pos.Y), 5, opaque, visit, inmap)	
 
 }
 

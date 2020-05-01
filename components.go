@@ -32,6 +32,14 @@ func (bc BlockerComponent) IsAIComponent() bool {
 	return false
 }
 
+type NPCComponent struct {
+
+}
+
+func (npc NPCComponent) IsAIComponent() bool {
+	return true
+}
+
 // Player Component
 type PlayerComponent struct {
 }

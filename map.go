@@ -1,5 +1,6 @@
 package main
 
+
 type maptile struct {
 	glyph rune
 	blocks_move bool
@@ -24,12 +25,18 @@ func (t *maptile) IsWall() bool {
 	return false
 }
 
+var (
+	MapTileNum = 0
+)
+
+
 func (m *gamemap) InitMap() {
 	// Initialize a 2d array that will represent the current game map (of dimensions Width x Height)
 	m.tiles = make([][]*maptile, m.width+1)
 	for i := range m.tiles {
 		m.tiles[i] = make([]*maptile, m.height+1)
 	}
+	MapTileNum = m.width*m.height;
 }
 
 func (m *gamemap) generateArenaMap() {
