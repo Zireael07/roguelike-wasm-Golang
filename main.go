@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"log"
+	"log"
 )
 
 //just a stub for now
@@ -31,8 +31,15 @@ func (g *game) ECSInit() {
 	player.AddComponent("player", PlayerComponent{})
 	player.AddComponent("position", PositionComponent{Pos:position{X: 1, Y: 1}})
 	player.AddComponent("renderable", RenderableComponent{Color{255,255,255,255}, '@'})
+	//NPC!
+	npc := &GameEntity{}
+	npc.setupComponentsMap()
+	npc.AddComponent("position", PositionComponent{Pos:position{X:10, Y:10}})
+	npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
+	npc.AddComponent("blocker", BlockerComponent{})
 
 	g.entities = append(g.entities, player)
+	g.entities = append(g.entities, npc)
 }
 
 
@@ -102,12 +109,35 @@ func (g *game) render(){
 	}
 }
 
+func (g *game) getAllBlockers(tg position) *GameEntity {
+	// := aka walrus aka type inference doesn't work for nil
+	var ret *GameEntity = nil
+	for _, e := range g.entities {
+		if e != nil {
+			if e.HasComponents([]string{"position", "blocker"}) {
+				pos, _ := e.Components["position"].(PositionComponent)
+				if pos.Pos.X == tg.X && pos.Pos.Y == tg.Y {
+					ret = e
+					break
+				}
+			}
+		}
+	}
+	return ret
+}
+
 func (g *game) MovePlayer (ent *GameEntity, dir position){
 	//log.Printf("Move %v", dir)
 	posComponent, _ := ent.Components["position"].(PositionComponent)
 	tg := position{posComponent.Pos.X+dir.X, posComponent.Pos.Y+dir.Y}
-	//check for blocked
+	//check for blocked tiles
 	if g.Map.tiles[tg.X][tg.Y].IsWall(){
+		return
+	}
+
+	//check for blocking entities
+	if g.getAllBlockers(tg) != nil {
+		log.Printf("The enemy growls at you!")
 		return
 	}
 

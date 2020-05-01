@@ -25,6 +25,13 @@ func (rc RenderableComponent) IsAIComponent() bool {
 	return false
 }
 
+type BlockerComponent struct {
+}
+
+func (bc BlockerComponent) IsAIComponent() bool {
+	return false
+}
+
 // Player Component
 type PlayerComponent struct {
 }
