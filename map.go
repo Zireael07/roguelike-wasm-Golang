@@ -3,6 +3,9 @@ package main
 type maptile struct {
 	glyph rune
 	blocks_move bool
+	//FOV
+	explored bool
+	visible bool
 }
 
 
@@ -34,9 +37,9 @@ func (m *gamemap) generateArenaMap() {
 	for x := 0; x <= m.width; x++ {
 		for y := 0; y <= m.height; y++ {
 			if x == 0 || x == m.width || y == 0 || y == m.height {
-				m.tiles[x][y] = &maptile{glyph: '#', blocks_move: true}
+				m.tiles[x][y] = &maptile{glyph: '#', blocks_move: true, visible: false}
 			} else {
-				m.tiles[x][y] = &maptile{glyph: '.', blocks_move: false}
+				m.tiles[x][y] = &maptile{glyph: '.', blocks_move: false, visible: false}
 			}
 		}
 	}
