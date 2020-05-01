@@ -144,8 +144,9 @@ func (p *Path) Neighbors(pos position) []position {
 
 
 func (g *game) takeTurn(e *GameEntity){
-	from := e.Components["position"].(PositionComponent).Pos
-	to := g.entities[0].Components["position"].(PositionComponent).Pos
+	//swap because the path is returned inverted?!
+	to := e.Components["position"].(PositionComponent).Pos
+	from := g.entities[0].Components["position"].(PositionComponent).Pos
 
 	mp := &Path{game: g}
 
@@ -155,7 +156,21 @@ func (g *game) takeTurn(e *GameEntity){
 	}
 	log.Printf("Path: %v", path);
 
-	//return path
+	posComponent, _ := e.Components["position"].(PositionComponent)
+	//#0, as usual, is our own position
+	//log.Printf("Closest point: %v", path[1])
+	if path[1].X != from.X && path[0].Y != from.Y {
+		//path only takes into account walkable tiles, so no need for other checking
+		posComponent.Pos = path[1]
+		//bit of a dance because we're not using pointers to Components
+		e.RemoveComponent("position")
+		e.AddComponent("position", posComponent)
+	} else {
+		log.Printf("Enemy kicks at your shins")
+	}
+
+
+
 }
 
 func (g *game) getAllBlockers(tg position) *GameEntity {
