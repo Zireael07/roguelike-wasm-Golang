@@ -40,6 +40,16 @@ func (npc NPCComponent) IsAIComponent() bool {
 	return true
 }
 
+type StatsComponent struct {
+	hp int
+	max_hp int
+	power int
+}
+
+func (sc StatsComponent) IsAIComponent() bool {
+	return false
+}
+
 // Player Component
 type PlayerComponent struct {
 }

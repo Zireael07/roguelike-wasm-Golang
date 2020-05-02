@@ -31,6 +31,7 @@ func (g *game) ECSInit() {
 	player.AddComponent("player", PlayerComponent{})
 	player.AddComponent("position", PositionComponent{Pos:position{X: 1, Y: 1}})
 	player.AddComponent("renderable", RenderableComponent{Color{255,255,255,255}, '@'})
+	player.AddComponent("stats", StatsComponent{hp:20, max_hp:20, power:5})
 	//NPC!
 	npc := &GameEntity{}
 	npc.setupComponentsMap()
@@ -38,6 +39,7 @@ func (g *game) ECSInit() {
 	npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
 	npc.AddComponent("blocker", BlockerComponent{})
 	npc.AddComponent("NPC", NPCComponent{})
+	npc.AddComponent("stats", StatsComponent{hp:10, max_hp: 10, power:2})
 
 	g.entities = append(g.entities, player)
 	g.entities = append(g.entities, npc)
@@ -166,7 +168,22 @@ func (g *game) takeTurn(e *GameEntity){
 		e.RemoveComponent("position")
 		e.AddComponent("position", posComponent)
 	} else {
-		log.Printf("Enemy kicks at your shins")
+		//log.Printf("Enemy kicks at your shins")
+		statsComp := g.entities[0].Components["stats"].(StatsComponent)
+		damage := e.Components["stats"].(StatsComponent).power
+		old_hp := g.entities[0].Components["stats"].(StatsComponent).hp
+		log.Printf("Enemy dealt %d damage to player", damage)
+		statsComp.hp = old_hp - damage
+		//bit of a dance because we're not using pointers to Components
+		g.entities[0].RemoveComponent("stats")
+		g.entities[0].AddComponent("stats", statsComp)
+		//dead
+		if g.entities[0].Components["stats"].(StatsComponent).hp <= 0 {
+			log.Printf("Player dead")
+			//remove from ECS
+			//for now, remove all components
+			g.entities[0].RemoveComponents([]string{"position", "renderable", "blocker", "stats"})
+		}
 	}
 
 
@@ -200,8 +217,26 @@ func (g *game) MovePlayer (ent *GameEntity, dir position){
 	}
 
 	//check for blocking entities
-	if g.getAllBlockers(tg) != nil {
-		log.Printf("The enemy growls at you!")
+	var blocker *GameEntity
+	blocker = g.getAllBlockers(tg)
+	if blocker != nil {
+		//combat goes here
+		statsComp := blocker.Components["stats"].(StatsComponent)
+		damage := ent.Components["stats"].(StatsComponent).power
+		old_hp := blocker.Components["stats"].(StatsComponent).hp
+		log.Printf("Player dealt %d damage to enemy", damage)
+		//bit of a dance because we're not using pointers to Components
+		statsComp.hp = old_hp - damage
+		blocker.RemoveComponent("stats")
+		blocker.AddComponent("stats", statsComp)
+		//dead
+		if blocker.Components["stats"].(StatsComponent).hp <= 0 {
+			log.Printf("Enemy dead")
+			//remove from ECS
+			//for now, remove all components
+			blocker.RemoveComponents([]string{"position", "renderable", "blocker", "stats", "NPC"})
+		}
+		//log.Printf("The enemy growls at you!")
 		return
 	}
 
