@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 //just a stub for now
@@ -9,6 +10,12 @@ type game struct {
 	Term *terminal;
 	Map *gamemap
 	entities []*GameEntity ///for ECS
+	MessageLog []Message
+}
+
+type Message struct {
+	text string
+	Color Color
 }
 
 type position struct {
@@ -133,10 +140,17 @@ func (g *game) render(){
 	}
 
 	//render GUI
-	g.Term.SetCell(0,22, 'H', Color{255,255,255,255}, Color{0,0,0,255}, false)
-	g.Term.SetCell(1,22, 'P', Color{255,255,255,255}, Color{0,0,0,255}, false)
-	g.renderBar(2,22,10, float32(g.entities[0].Components["stats"].(StatsComponent).hp), float32(g.entities[0].Components["stats"].(StatsComponent).max_hp), 
+	g.Term.SetCell(25,1, 'H', Color{255,255,255,255}, Color{0,0,0,255}, false)
+	g.Term.SetCell(26,1, 'P', Color{255,255,255,255}, Color{0,0,0,255}, false)
+	g.renderBar(27,1,10, float32(g.entities[0].Components["stats"].(StatsComponent).hp), float32(g.entities[0].Components["stats"].(StatsComponent).max_hp), 
 	Color{255,115, 155, 255}, Color{128,0,0,255})
+
+	//draw message log
+	y := 21
+	for _, msg := range g.MessageLog {
+		g.Term.DrawColoredText(0, y, msg.text, msg.Color)
+		y++
+	}
 }
 
 type Path struct {
@@ -193,7 +207,8 @@ func (g *game) takeTurn(e *GameEntity){
 		statsComp := g.entities[0].Components["stats"].(StatsComponent)
 		damage := e.Components["stats"].(StatsComponent).power
 		old_hp := g.entities[0].Components["stats"].(StatsComponent).hp
-		log.Printf("Enemy dealt %d damage to player", damage)
+		//log.Printf("Enemy dealt %d damage to player", damage)
+		g.logMessage(fmt.Sprintf("Enemy dealt %d damage to player", damage)) //, Color{255,0,0,255})
 		statsComp.hp = old_hp - damage
 		//bit of a dance because we're not using pointers to Components
 		g.entities[0].RemoveComponent("stats")
@@ -245,14 +260,14 @@ func (g *game) MovePlayer (ent *GameEntity, dir position){
 		statsComp := blocker.Components["stats"].(StatsComponent)
 		damage := ent.Components["stats"].(StatsComponent).power
 		old_hp := blocker.Components["stats"].(StatsComponent).hp
-		log.Printf("Player dealt %d damage to enemy", damage)
+		g.logMessage(fmt.Sprintf("Player dealt %d damage to enemy", damage)) // Color{0,255,0,255})
 		//bit of a dance because we're not using pointers to Components
 		statsComp.hp = old_hp - damage
 		blocker.RemoveComponent("stats")
 		blocker.AddComponent("stats", statsComp)
 		//dead
 		if blocker.Components["stats"].(StatsComponent).hp <= 0 {
-			log.Printf("Enemy dead")
+			g.logMessage("Enemy is killed.")
 			//remove from ECS
 			//for now, remove all components
 			blocker.RemoveComponents([]string{"position", "renderable", "blocker", "stats", "NPC"})
@@ -306,6 +321,20 @@ func (g *game) onPlayerMove(posComp PositionComponent){
 
 }
 
+func (g *game) logMessage(msg string) {
+	if len(g.MessageLog) >= 4 {
+		// Throw away any messages that exceed our total queue size
+		g.MessageLog = g.MessageLog[1:]
+		//g.MessageLog = g.MessageLog[:len(g.MessageLog)-1]
+	}
+	message := Message{msg, Color{255,255,255,255}}
+	g.MessageLog = append(g.MessageLog, message)
+
+	// Prepend the message
+	//g.MessageLog = append([]Message{message}, g.MessageLog...)
+}
+
+
 func (g *game) HandlePlayerEvent() () {
 	in := g.Term.PollEvent()
 	//log.Printf("Event: %v", in);
@@ -325,6 +354,7 @@ func (g *game) HandlePlayerEvent() () {
 			if (pl_posComponent.Pos.Distance(pos) < 2){
 				dir := pos.sub(pl_posComponent.Pos)
 				//log.Printf("direction: %v", dir)
+				g.Term.Clear()
 				g.MovePlayer(g.entities[0], dir)
 				g.render()
 				g.Term.Flush()

@@ -82,6 +82,31 @@ func (term *terminal) Clear() {
 		term.SetCell(x, y, ' ', ColorFg, ColorBg, false)
 	}
 }
+
+func (term *terminal) DrawText(x, y int, text string) {
+	term.DrawColoredText(x, y, text, ColorFg)
+}
+
+func (term *terminal) DrawColoredText(x, y int, text string, fg Color) {
+	term.DrawColoredTextOnBG(x, y, text, fg, ColorBg)
+}
+
+func (term *terminal) DrawColoredTextOnBG(x, y int, text string, fg, bg Color) {
+	col := 0
+	for _, r := range text {
+		if r == '\n' {
+			y++
+			col = 0
+			continue
+		}
+		if x+col >= 80 {
+			break
+		}
+		term.SetCell(x+col, y, r, fg, bg, false)
+		col++
+	}
+}
+
 //'rune' is Go's UTF-8 friendly equivalent of char
 func (term *terminal) SetCell(x, y int, r rune, fg, bg Color, inmap bool) {
 	//prevent drawing out of bounds
