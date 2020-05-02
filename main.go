@@ -73,6 +73,21 @@ func (pos position) isValid(g *game) bool {
 	} else { return false } 
 }
 
+
+func (g *game) renderBar(x,y,width int, value, max_value float32, barColor, backColor Color) {
+	// draw the bg
+	for i := x; i <= x + width; i++ {
+		g.Term.SetCell(i,y, ' ', backColor, backColor, false)
+	} 
+	//fill with color
+	barWidth := int((value / max_value * float32(width)));
+	if ( barWidth > 0 ) {
+		for i := x; i <= x + barWidth; i++ {
+			g.Term.SetCell(i,y, ' ', barColor, barColor, false)
+		}
+	}
+}
+
 func (g *game) clearFOV() {
 	for x := 0; x < g.Map.width; x++ {
 		for y := 0; y < g.Map.height; y++ {
@@ -116,6 +131,12 @@ func (g *game) render(){
 			}
 		}
 	}
+
+	//render GUI
+	g.Term.SetCell(0,22, 'H', Color{255,255,255,255}, Color{0,0,0,255}, false)
+	g.Term.SetCell(1,22, 'P', Color{255,255,255,255}, Color{0,0,0,255}, false)
+	g.renderBar(2,22,10, float32(g.entities[0].Components["stats"].(StatsComponent).hp), float32(g.entities[0].Components["stats"].(StatsComponent).max_hp), 
+	Color{255,115, 155, 255}, Color{128,0,0,255})
 }
 
 type Path struct {
