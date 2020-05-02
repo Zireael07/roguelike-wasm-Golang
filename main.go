@@ -39,6 +39,7 @@ func (g *game) ECSInit() {
 	player.AddComponent("position", PositionComponent{Pos:position{X: 1, Y: 1}})
 	player.AddComponent("renderable", RenderableComponent{Color{255,255,255,255}, '@'})
 	player.AddComponent("stats", StatsComponent{hp:20, max_hp:20, power:5})
+	player.AddComponent("name", NameComponent{"Player"})
 	//NPC!
 	npc := &GameEntity{}
 	npc.setupComponentsMap()
@@ -47,6 +48,7 @@ func (g *game) ECSInit() {
 	npc.AddComponent("blocker", BlockerComponent{})
 	npc.AddComponent("NPC", NPCComponent{})
 	npc.AddComponent("stats", StatsComponent{hp:10, max_hp: 10, power:2})
+	npc.AddComponent("name", NameComponent{"Thug"})
 
 	g.entities = append(g.entities, player)
 	g.entities = append(g.entities, npc)
@@ -151,6 +153,37 @@ func (g *game) render(){
 		g.Term.DrawColoredText(0, y, msg.text, msg.Color)
 		y++
 	}
+}
+
+func (g *game) describePosition(pos position) {
+	//log.Printf("Describing position... %v", pos)
+	if !pos.isValid(g){
+		return
+	}
+
+	g.Term.DrawText(25, 2, fmt.Sprintf("X:%d Y:%d", pos.X, pos.Y))
+
+	if !g.Map.tiles[pos.X][pos.Y].explored{
+		return
+	}
+
+	txt := ""
+
+	for _, e := range g.entities {
+		if e != nil {
+			if e.HasComponents([]string{"position", "name"}) {
+				pos_c, _ := e.Components["position"].(PositionComponent)
+				if pos_c.Pos.X == pos.X && pos_c.Pos.Y == pos.Y {
+					name, _ := e.Components["name"].(NameComponent)
+					txt = name.name
+					break
+				}
+			}
+		}
+	}
+
+	g.Term.DrawText(25, 3, txt)
+
 }
 
 type Path struct {
@@ -270,7 +303,7 @@ func (g *game) MovePlayer (ent *GameEntity, dir position){
 			g.logMessage("Enemy is killed.")
 			//remove from ECS
 			//for now, remove all components
-			blocker.RemoveComponents([]string{"position", "renderable", "blocker", "stats", "NPC"})
+			blocker.RemoveComponents([]string{"position", "renderable", "blocker", "stats", "NPC", "name"})
 		}
 		//log.Printf("The enemy growls at you!")
 		return
@@ -346,6 +379,7 @@ func (g *game) HandlePlayerEvent() () {
 			g.Term.Clear()
 			g.render()
 			g.Term.highlightPos(pos)
+			g.describePosition(pos)
 			g.Term.Flush()
 		//left
 		case 0:
@@ -362,6 +396,7 @@ func (g *game) HandlePlayerEvent() () {
 				g.Term.Clear()
 				g.render()
 				g.Term.highlightPos(pos)
+				g.describePosition(pos)
 				g.Term.Flush()
 			}
 		}

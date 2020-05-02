@@ -17,7 +17,7 @@ var (
 )
 
 var (
-	ColorFg = Color{0,0,0, 255}
+	ColorFg = Color{255,255,255, 255}
 	ColorBg = Color{0,0,0, 255}
 	ColorHighlightDark = Color{7, 54, 66, 255} //solarized base02
 )

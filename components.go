@@ -50,6 +50,14 @@ func (sc StatsComponent) IsAIComponent() bool {
 	return false
 }
 
+type NameComponent struct {
+	name string
+}
+
+func (nc NameComponent) IsAIComponent() bool {
+	return false
+}
+
 // Player Component
 type PlayerComponent struct {
 }
