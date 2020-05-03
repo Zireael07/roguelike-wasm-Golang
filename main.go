@@ -157,6 +157,8 @@ func (g *game) render(){
 	g.renderBar(27,1,10, float32(g.entities[0].Components["stats"].(StatsComponent).hp), float32(g.entities[0].Components["stats"].(StatsComponent).max_hp), 
 	Color{255,115, 155, 255}, Color{128,0,0,255})
 
+	g.Term.DrawColoredText(25, 5, "Inventory", Color{0,255,255,255})
+
 	//draw message log
 	y := 21
 	for _, msg := range g.MessageLog {
@@ -274,6 +276,60 @@ func (g *game) GetItemsAtPos(pos position) *GameEntity {
 	return ret
 }
 
+func (g *game) GetItemsInventory() []*GameEntity {
+	// := aka walrus aka type inference doesn't work here
+	var ret [] *GameEntity
+	for _, e := range g.entities {
+		if e != nil {
+			if e.HasComponents([]string{"backpack", "item", "name"}) {
+				ret = append(ret, e)
+			}
+		}
+	}
+	return ret
+}
+
+func (g *game) renderInventory() {
+	log.Printf("render inventory...")
+	items := g.GetItemsInventory()
+
+	if len(items) < 1{
+		log.Printf("No items in inventory...")
+		return
+	}
+		
+
+	x := 10
+	y := 1
+	for _, it := range items {
+		name_c, _ := it.Components["name"].(NameComponent)
+		g.Term.DrawColoredText(x,y, name_c.name, Color{0,255,255,255})
+		y++
+	}
+
+	//this loop has to be named, otherwise engine gets stuck?
+	menuloop:
+	for {
+		g.Term.Flush()
+		in := g.Term.PollEvent()
+		//log.Printf("Event: %v", in);
+		if in.mouse {
+			//m_pos := position{X: in.mouseX, Y: in.mouseY}
+			switch in.button {
+				case -1:
+					// do nothing
+				//left
+				case 0:
+					break menuloop
+				//right
+				case 2:
+					//exit the menu
+					break menuloop
+			}
+		}
+	}
+	log.Printf("Exited ui loop")
+}
 
 type Path struct {
 	game      *game
@@ -482,11 +538,21 @@ func (g *game) HandlePlayerEvent() () {
 				g.render()
 				g.Term.Flush()
 			} else {
-				g.Term.Clear()
-				g.render()
-				g.Term.highlightPos(pos)
-				g.describePosition(pos)
-				g.Term.Flush()
+				//did we click the right panel menu?
+				if pos.X > 20 && pos.Y >= 5 {
+					if pos.Y == 5 {
+						g.renderInventory();
+						g.Term.Flush()
+					}
+				} else {
+					//do nothing
+					g.Term.Clear()
+					g.render()
+					g.Term.highlightPos(pos)
+					g.describePosition(pos)
+					g.Term.Flush()
+				}
+				
 			}
 		//right
 		case 2:
