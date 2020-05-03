@@ -58,6 +58,21 @@ func (nc NameComponent) IsAIComponent() bool {
 	return false
 }
 
+type ItemComponent struct {
+}
+
+func (ic ItemComponent) IsAIComponent() bool {
+	return false
+}
+
+type InBackpackComponent struct {
+
+}
+
+func (ic InBackpackComponent) IsAIComponent() bool {
+	return false
+}
+
 // Player Component
 type PlayerComponent struct {
 }

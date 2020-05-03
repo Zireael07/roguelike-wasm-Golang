@@ -146,7 +146,7 @@ var MapNames = map[rune]string{
 	'(':  "lparen",
 	'>':  "stairs",
 	'Δ':  "portal",
-	'!':  "potion",
+	'!':  "exclamation",
 	';':  "semicolon",
 	'_':  "stone",
 }

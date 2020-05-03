@@ -49,9 +49,17 @@ func (g *game) ECSInit() {
 	npc.AddComponent("NPC", NPCComponent{})
 	npc.AddComponent("stats", StatsComponent{hp:10, max_hp: 10, power:2})
 	npc.AddComponent("name", NameComponent{"Thug"})
+	//item
+	it := &GameEntity{}
+	it.setupComponentsMap()
+	it.AddComponent("position", PositionComponent{Pos:position{X:6, Y:6}})
+	it.AddComponent("renderable", RenderableComponent{Color{255,0,0,255}, '!'})
+	it.AddComponent("item", ItemComponent{})
+	it.AddComponent("name", NameComponent{"Medkit"})
 
 	g.entities = append(g.entities, player)
 	g.entities = append(g.entities, npc)
+	g.entities = append(g.entities, it)
 }
 
 
@@ -133,10 +141,12 @@ func (g *game) render(){
 	for _, e := range g.entities {
 		if e != nil {
 			if e.HasComponents([]string{"position", "renderable"}) {
-				pos, _ := e.Components["position"].(PositionComponent)
-				rend, _ := e.Components["renderable"].(RenderableComponent)
-
-				g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
+				if !e.HasComponents([]string{"backpack"}){
+					pos, _ := e.Components["position"].(PositionComponent)
+					rend, _ := e.Components["renderable"].(RenderableComponent)
+	
+					g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
+				}
 			}
 		}
 	}
@@ -172,11 +182,13 @@ func (g *game) describePosition(pos position) {
 	for _, e := range g.entities {
 		if e != nil {
 			if e.HasComponents([]string{"position", "name"}) {
-				pos_c, _ := e.Components["position"].(PositionComponent)
-				if pos_c.Pos.X == pos.X && pos_c.Pos.Y == pos.Y {
-					name, _ := e.Components["name"].(NameComponent)
-					txt = name.name
-					break
+				if !e.HasComponents([]string{"backpack"}) {
+					pos_c, _ := e.Components["position"].(PositionComponent)
+					if pos_c.Pos.X == pos.X && pos_c.Pos.Y == pos.Y {
+						name, _ := e.Components["name"].(NameComponent)
+						txt = name.name
+						break
+					}
 				}
 			}
 		}
@@ -185,6 +197,83 @@ func (g *game) describePosition(pos position) {
 	g.Term.DrawText(25, 3, txt)
 
 }
+
+func (g *game) renderActionMenu(pos position){
+	if !pos.isValid(g){
+		return
+	}
+
+	if !g.Map.tiles[pos.X][pos.Y].explored{
+		return
+	}
+
+	txt := ""
+	if g.GetItemsAtPos(pos) != nil {
+		txt = "Get an item"
+	}
+
+	//this loop has to be named, otherwise engine gets stuck?
+	menuloop:
+	for {
+		g.Term.DrawColoredText(pos.X+1, pos.Y, txt, Color{0,255,255,255})
+		g.Term.Flush()
+		in := g.Term.PollEvent()
+		//log.Printf("Event: %v", in);
+		if in.mouse {
+			m_pos := position{X: in.mouseX, Y: in.mouseY}
+			switch in.button {
+				case -1:
+					// do nothing
+				//left
+				case 0:
+					if m_pos.X >= pos.X && m_pos.X <= 20 && m_pos.Y == pos.Y {
+						log.Printf("Selected get")
+						// player on the same tile
+						pl_pos := g.entities[0].Components["position"].(PositionComponent)
+						if pl_pos.Pos.X == pos.X && pl_pos.Pos.Y == pos.Y {
+							//Actually get the item
+							it := g.GetItemsAtPos(pos)
+							if it != nil {
+								it.AddComponent("backpack", InBackpackComponent{})
+								g.logMessage("Picked up item")
+							}
+						}
+						
+						
+						break menuloop
+					}
+					//exit either way
+					break menuloop
+				//right
+				case 2:
+					//exit the menu
+					break menuloop
+			}
+		}
+	}
+	log.Printf("Exited loop")
+	
+}
+
+func (g *game) GetItemsAtPos(pos position) *GameEntity {
+	// := aka walrus aka type inference doesn't work for nil
+	var ret *GameEntity = nil
+	for _, e := range g.entities {
+		if e != nil {
+			if e.HasComponents([]string{"position", "item"}) {
+				if !e.HasComponents([]string{"backpack"}) {
+					pos_c, _ := e.Components["position"].(PositionComponent)
+					if pos_c.Pos.X == pos.X && pos_c.Pos.Y == pos.Y {
+						ret = e
+						break
+					}
+				}
+			}
+		}
+	}
+	return ret
+}
+
 
 type Path struct {
 	game      *game
@@ -399,9 +488,16 @@ func (g *game) HandlePlayerEvent() () {
 				g.describePosition(pos)
 				g.Term.Flush()
 			}
+		//right
+		case 2:
+			g.Term.Clear()
+			g.render()
+			g.Term.highlightPos(pos)
+			//draw an action menu here
+			g.renderActionMenu(pos)
+			g.Term.Flush()
 		}
 
-		
 	}
 }
 
