@@ -56,6 +56,7 @@ func (g *game) ECSInit() {
 	it.AddComponent("renderable", RenderableComponent{Color{255,0,0,255}, '!'})
 	it.AddComponent("item", ItemComponent{})
 	it.AddComponent("name", NameComponent{"Medkit"})
+	it.AddComponent("medkit", MedkitComponent{4})
 
 	g.entities = append(g.entities, player)
 	g.entities = append(g.entities, npc)
@@ -238,6 +239,14 @@ func (g *game) renderActionMenu(pos position){
 							if it != nil {
 								it.AddComponent("backpack", InBackpackComponent{})
 								g.logMessage("Picked up item")
+								//AI gets to move
+								for _, e := range g.entities {
+									if e != nil {
+										if e.HasComponents([]string{"NPC"}) {
+											g.takeTurn(e)
+										}
+									}
+								}
 							}
 						}
 						
@@ -314,12 +323,38 @@ func (g *game) renderInventory() {
 		in := g.Term.PollEvent()
 		//log.Printf("Event: %v", in);
 		if in.mouse {
-			//m_pos := position{X: in.mouseX, Y: in.mouseY}
+			m_pos := position{X: in.mouseX, Y: in.mouseY}
 			switch in.button {
 				case -1:
 					// do nothing
 				//left
 				case 0:
+					if m_pos.X >= 10 && m_pos.X <= 20 && m_pos.Y == 1 {
+						//click item #1
+						if items[0].HasComponent("medkit") {
+							//use the medkit
+							heal := items[0].Components["medkit"].(MedkitComponent).heal
+							//heal the player
+							statsComp := g.entities[0].Components["stats"].(StatsComponent)
+							old_hp := g.entities[0].Components["stats"].(StatsComponent).hp
+							g.logMessage(fmt.Sprintf("Medkit healed %d damage", heal)) //, Color{255,0,0,255})
+							statsComp.hp = old_hp + heal
+							//bit of a dance because we're not using pointers to Components
+							g.entities[0].RemoveComponent("stats")
+							g.entities[0].AddComponent("stats", statsComp)
+							//nuke the medkit
+							items[0].RemoveComponents([]string{"position", "renderable", "item", "medkit", "backpack"})
+							//end turn
+							//AI gets to move
+							for _, e := range g.entities {
+								if e != nil {
+									if e.HasComponents([]string{"NPC"}) {
+										g.takeTurn(e)
+									}
+								}
+							}
+						}
+					}
 					break menuloop
 				//right
 				case 2:

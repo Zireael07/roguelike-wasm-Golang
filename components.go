@@ -73,6 +73,14 @@ func (ic InBackpackComponent) IsAIComponent() bool {
 	return false
 }
 
+type MedkitComponent struct {
+	heal int
+}
+
+func (mc MedkitComponent) IsAIComponent() bool {
+	return false
+}
+
 // Player Component
 type PlayerComponent struct {
 }
