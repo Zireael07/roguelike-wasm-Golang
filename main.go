@@ -57,10 +57,19 @@ func (g *game) ECSInit() {
 	it.AddComponent("item", ItemComponent{})
 	it.AddComponent("name", NameComponent{"Medkit"})
 	it.AddComponent("medkit", MedkitComponent{4})
+	//gun
+	gun := &GameEntity{}
+	gun.setupComponentsMap()
+	gun.AddComponent("position", PositionComponent{Pos:position{X:4, Y:4}})
+	gun.AddComponent("renderable", RenderableComponent{Color{0,255,255,255}, '('})
+	gun.AddComponent("item", ItemComponent{})
+	gun.AddComponent("name", NameComponent{"Pistol"})
+	gun.AddComponent("range", RangeComponent{6})
 
 	g.entities = append(g.entities, player)
 	g.entities = append(g.entities, npc)
 	g.entities = append(g.entities, it)
+	g.entities = append(g.entities, gun)
 }
 
 
@@ -299,7 +308,7 @@ func (g *game) GetItemsInventory() []*GameEntity {
 }
 
 func (g *game) renderInventory() {
-	log.Printf("render inventory...")
+	//log.Printf("render inventory...")
 	items := g.GetItemsInventory()
 
 	if len(items) < 1{
@@ -329,11 +338,11 @@ func (g *game) renderInventory() {
 					// do nothing
 				//left
 				case 0:
-					if m_pos.X >= 10 && m_pos.X <= 20 && m_pos.Y == 1 {
-						//click item #1
-						if items[0].HasComponent("medkit") {
+					if m_pos.X >= 10 && m_pos.X <= 20 {
+						id := m_pos.Y-1
+						if items[id].HasComponent("medkit") {
 							//use the medkit
-							heal := items[0].Components["medkit"].(MedkitComponent).heal
+							heal := items[id].Components["medkit"].(MedkitComponent).heal
 							//heal the player
 							statsComp := g.entities[0].Components["stats"].(StatsComponent)
 							old_hp := g.entities[0].Components["stats"].(StatsComponent).hp
@@ -343,7 +352,7 @@ func (g *game) renderInventory() {
 							g.entities[0].RemoveComponent("stats")
 							g.entities[0].AddComponent("stats", statsComp)
 							//nuke the medkit
-							items[0].RemoveComponents([]string{"position", "renderable", "item", "medkit", "backpack"})
+							items[id].RemoveComponents([]string{"position", "renderable", "item", "medkit", "backpack"})
 							//end turn
 							//AI gets to move
 							for _, e := range g.entities {
@@ -353,8 +362,81 @@ func (g *game) renderInventory() {
 									}
 								}
 							}
+							//break menuloop
+						}
+						if items[id].HasComponent("range") {
+							shootloop:
+								for {
+									in := g.Term.PollEvent()
+									//log.Printf("Event: %v", in);
+									if in.mouse {
+										m_pos := position{X: in.mouseX, Y: in.mouseY}
+										g.Term.highlightPos(m_pos)
+										g.describePosition(m_pos)
+										g.Term.Flush()
+										switch in.button {
+											case -1:
+												// do nothing
+											//left
+											case 0:
+												
+												//target
+												dist := items[id].Components["range"].(RangeComponent).dist
+												pl_pos := g.entities[0].Components["position"].(PositionComponent).Pos
+
+												//target in range
+												if m_pos.X <= pl_pos.X + dist && m_pos.Y <= pl_pos.Y + dist{
+													//are we targeting something?
+													blocker := g.getAllBlockers(m_pos)
+													if blocker != nil{
+														//damage it!
+														statsComp := blocker.Components["stats"].(StatsComponent)
+														damage := 6 //dummy
+														old_hp := blocker.Components["stats"].(StatsComponent).hp
+														g.logMessage(fmt.Sprintf("Player shoots enemy for %d damage", damage)) // Color{0,255,0,255})
+														//bit of a dance because we're not using pointers to Components
+														statsComp.hp = old_hp - damage
+														blocker.RemoveComponent("stats")
+														blocker.AddComponent("stats", statsComp)
+														//dead
+														if blocker.Components["stats"].(StatsComponent).hp <= 0 {
+															g.logMessage("Enemy is killed.")
+															//remove from ECS
+															//for now, remove all components
+															blocker.RemoveComponents([]string{"position", "renderable", "blocker", "stats", "NPC", "name"})
+														}
+
+														//nuke the gun
+														//we're kind, we only nuke it if we actually hit something
+														items[id].RemoveComponents([]string{"position", "renderable", "item", "range", "backpack"})
+														
+													} else {
+														g.logMessage("Nothing to shoot at here")
+													}
+													g.Term.Flush()
+													//end turn
+													//AI gets to move
+													for _, e := range g.entities {
+														if e != nil {
+															if e.HasComponents([]string{"NPC"}) {
+																g.takeTurn(e)
+															}
+														}
+													}
+												}
+												break shootloop
+											//right
+											case 2:
+												//cancel
+												break shootloop
+										}
+									}
+								}
+								break menuloop
+							
 						}
 					}
+					// break out of menu loop (item actions are done!)
 					break menuloop
 				//right
 				case 2:
@@ -409,7 +491,7 @@ func (g *game) takeTurn(e *GameEntity){
 	posComponent, _ := e.Components["position"].(PositionComponent)
 	//#0, as usual, is our own position
 	//log.Printf("Closest point: %v", path[1])
-	if path[1].X != from.X && path[0].Y != from.Y {
+	if path[1].X != from.X && path[1].Y != from.Y {
 		//path only takes into account walkable tiles, so no need for other checking
 		posComponent.Pos = path[1]
 		//bit of a dance because we're not using pointers to Components

@@ -81,6 +81,14 @@ func (mc MedkitComponent) IsAIComponent() bool {
 	return false
 }
 
+type RangeComponent struct {
+	dist int
+}
+
+func (rc RangeComponent) IsAIComponent() bool {
+	return false
+}
+
 // Player Component
 type PlayerComponent struct {
 }
