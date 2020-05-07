@@ -154,8 +154,9 @@ func (g *game) render(){
 				if !e.HasComponents([]string{"backpack"}){
 					pos, _ := e.Components["position"].(PositionComponent)
 					rend, _ := e.Components["renderable"].(RenderableComponent)
-	
-					g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
+					if (g.Map.tiles[pos.Pos.X][pos.Pos.Y].visible) {
+						g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
+					}
 				}
 			}
 		}
@@ -431,7 +432,7 @@ func (g *game) renderInventory() {
 																			} else {
 																				g.logMessage("Nothing to shoot at here")
 																			}
-																			g.Term.Flush()
+
 																			//end turn
 																			//AI gets to move
 																			for _, e := range g.entities {
@@ -465,7 +466,7 @@ func (g *game) renderInventory() {
 													items[id].RemoveComponent("position")
 													items[id].AddComponent("position", posComp)
 													g.logMessage("Player dropped item")
-													g.Term.Flush()
+
 													//end turn
 													//AI gets to move
 													for _, e := range g.entities {
@@ -499,6 +500,7 @@ func (g *game) renderInventory() {
 		}
 	}
 	log.Printf("Exited ui loop")
+	g.Term.Flush()
 }
 
 type Path struct {
@@ -711,6 +713,8 @@ func (g *game) HandlePlayerEvent() () {
 				//did we click the right panel menu?
 				if pos.X > 20 && pos.Y >= 5 {
 					if pos.Y == 5 {
+						g.Term.Clear()
+						g.render()
 						g.renderInventory();
 						g.Term.Flush()
 					}
@@ -731,6 +735,7 @@ func (g *game) HandlePlayerEvent() () {
 			g.Term.highlightPos(pos)
 			//draw an action menu here
 			g.renderActionMenu(pos)
+			g.render()
 			g.Term.Flush()
 		}
 

@@ -40,6 +40,28 @@ func newGame(term *terminal) {
 	//term.g = g //if we need access to g down the line
 	g.Term = term
 	g.GameInit()
+	//recalc FOV
+	g.clearFOV()
+	var opaque VB = func(x,y int32) bool {
+		//paranoia
+		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
+			return g.Map.tiles[x][y].IsWall() 
+		} else 
+		{ return true } 
+	}
+	var visit VE = func(x,y int32) {
+		//paranoia
+		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
+			g.Map.tiles[x][y].visible = true
+			g.Map.tiles[x][y].explored = true
+		}
+	}
+	var inmap IM = func(x,y int32) bool {
+		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height){
+			return true
+		} else { return false } 
+	}
+	g.pp_FOV(1, 1, 5, opaque, visit, inmap)	
 	//make the game run!
 	g.gameeventLoop()
 	//term.eventLoop()
