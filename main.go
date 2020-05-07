@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"fmt"
+	"math/rand" //for RNG
+	"time"
 )
 
 //just a stub for now
@@ -24,11 +26,47 @@ type position struct {
 }
 
 func (g *game) GameInit() {
+	//init RNG
+	rand.Seed(time.Now().UnixNano())
 	g.ECSInit()
 	m := &gamemap{width: 20, height:20}
 	m.InitMap()
 	m.generateArenaMap()
 	g.Map = m
+}
+
+type randomPick struct {
+	chance int
+	entry string
+}
+
+func (g *game) selectRandomItem() string {
+	var chances []randomPick
+	chances = []randomPick{ randomPick{25, "Pistol"}, randomPick{50, "Medkit"} }
+
+	sum := 0
+	for _, ch := range chances {
+		sum = sum + ch.chance
+	}
+	//log.Print("Sum: %d", sum)
+	roll := rand.Intn(sum) 
+	log.Printf("Roll: %d", roll)
+
+	//look up result
+	res := ""
+	for i, _ := range chances {
+		low := 0
+		high := chances[i].chance
+		if i > 0 {
+			low = chances[i-1].chance
+			high = low+chances[i].chance
+		}
+		if roll > low && roll <= high {
+			return chances[i].entry
+		}
+	}
+
+	return res
 }
 
 func (g *game) ECSInit() {
@@ -40,36 +78,52 @@ func (g *game) ECSInit() {
 	player.AddComponent("renderable", RenderableComponent{Color{255,255,255,255}, '@'})
 	player.AddComponent("stats", StatsComponent{hp:20, max_hp:20, power:5})
 	player.AddComponent("name", NameComponent{"Player"})
-	//NPC!
-	npc := &GameEntity{}
-	npc.setupComponentsMap()
-	npc.AddComponent("position", PositionComponent{Pos:position{X:10, Y:10}})
-	npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
-	npc.AddComponent("blocker", BlockerComponent{})
-	npc.AddComponent("NPC", NPCComponent{})
-	npc.AddComponent("stats", StatsComponent{hp:10, max_hp: 10, power:2})
-	npc.AddComponent("name", NameComponent{"Thug"})
-	//item
-	it := &GameEntity{}
-	it.setupComponentsMap()
-	it.AddComponent("position", PositionComponent{Pos:position{X:6, Y:6}})
-	it.AddComponent("renderable", RenderableComponent{Color{255,0,0,255}, '!'})
-	it.AddComponent("item", ItemComponent{})
-	it.AddComponent("name", NameComponent{"Medkit"})
-	it.AddComponent("medkit", MedkitComponent{4})
-	//gun
-	gun := &GameEntity{}
-	gun.setupComponentsMap()
-	gun.AddComponent("position", PositionComponent{Pos:position{X:4, Y:4}})
-	gun.AddComponent("renderable", RenderableComponent{Color{0,255,255,255}, '('})
-	gun.AddComponent("item", ItemComponent{})
-	gun.AddComponent("name", NameComponent{"Pistol"})
-	gun.AddComponent("range", RangeComponent{6})
-
 	g.entities = append(g.entities, player)
-	g.entities = append(g.entities, npc)
-	g.entities = append(g.entities, it)
-	g.entities = append(g.entities, gun)
+	//NPCs!
+	npcs_num := 2
+	for i :=0; i < npcs_num; i++ {
+		npc := &GameEntity{}
+		npc.setupComponentsMap()
+		//random position in range 1-19
+		rnd_x := rand.Intn(19-1)+1
+		rnd_y := rand.Intn(19-1)+1
+		npc.AddComponent("position", PositionComponent{Pos:position{X:rnd_x, Y:rnd_y}})
+		npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
+		npc.AddComponent("blocker", BlockerComponent{})
+		npc.AddComponent("NPC", NPCComponent{})
+		npc.AddComponent("stats", StatsComponent{hp:10, max_hp: 10, power:2})
+		npc.AddComponent("name", NameComponent{"Thug"})
+		g.entities = append(g.entities, npc)
+		//log.Printf("Added npc...")
+	}
+
+	//item
+	sel := g.selectRandomItem()
+	log.Printf("Sel: %v", sel)
+	if sel != "" {
+		if sel == "Pistol" {
+			//gun
+			it := &GameEntity{}
+			it.setupComponentsMap()
+			it.AddComponent("position", PositionComponent{Pos:position{X:4, Y:4}})
+			it.AddComponent("renderable", RenderableComponent{Color{0,255,255,255}, '('})
+			it.AddComponent("item", ItemComponent{})
+			it.AddComponent("name", NameComponent{"Pistol"})
+			it.AddComponent("range", RangeComponent{6})
+			g.entities = append(g.entities, it)
+		} else if sel == "Medkit" {
+			it := &GameEntity{}
+			it.setupComponentsMap()
+			it.AddComponent("position", PositionComponent{Pos:position{X:6, Y:6}})
+			it.AddComponent("renderable", RenderableComponent{Color{255,0,0,255}, '!'})
+			it.AddComponent("item", ItemComponent{})
+			it.AddComponent("name", NameComponent{"Medkit"})
+			it.AddComponent("medkit", MedkitComponent{4})
+			g.entities = append(g.entities, it)
+		}	
+	}
+	
+	//g.entities = append(g.entities, gun)
 }
 
 
