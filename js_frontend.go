@@ -64,7 +64,7 @@ func newGame(term *terminal) {
 	g.pp_FOV(1, 1, 5, opaque, visit, inmap)	
 	//make the game run!
 	g.gameeventLoop()
-	//term.eventLoop()
+
 	//initial draw
 	term.Clear()
 	g.render()
@@ -89,77 +89,7 @@ type terminal struct {
 	mousepos  position
 }
 
-//Generic terminal stuff
-func (term *terminal) GetIndex(x, y int) int {
-	return y*TermWidth + x
-}
 
-func (term *terminal) GetPos(i int) (int, int) {
-	return i - (i/TermWidth)*TermWidth, i / TermWidth
-}
-
-func (term *terminal) Clear() {
-	for i := 0; i < TermHeight*TermWidth; i++ {
-		x, y := term.GetPos(i)
-		term.SetCell(x, y, ' ', ColorFg, ColorBg, false)
-	}
-}
-
-func (term *terminal) DrawText(x, y int, text string) {
-	term.DrawColoredText(x, y, text, ColorFg)
-}
-
-func (term *terminal) DrawColoredText(x, y int, text string, fg Color) {
-	term.DrawColoredTextOnBG(x, y, text, fg, ColorBg)
-}
-
-func (term *terminal) DrawColoredTextOnBG(x, y int, text string, fg, bg Color) {
-	col := 0
-	for _, r := range text {
-		if r == '\n' {
-			y++
-			col = 0
-			continue
-		}
-		if x+col >= 80 {
-			break
-		}
-		term.SetCell(x+col, y, r, fg, bg, false)
-		col++
-	}
-}
-
-//'rune' is Go's UTF-8 friendly equivalent of char
-func (term *terminal) SetCell(x, y int, r rune, fg, bg Color, inmap bool) {
-	//prevent drawing out of bounds
-	i := term.GetIndex(x, y)
-	if i >= TermHeight*TermWidth {
-		return
-	}
-	c := TermCell{R: r, Fg: fg, Bg: bg, InMap: inmap}
-	term.DrawBuffer[i] = c
-}
-
-//original
-func (term *terminal) GetCell(x,y int) TermCell {
-	var c TermCell
-	i := term.GetIndex(x, y)
-	if i >= TermHeight*TermWidth {
-		//dummy
-		c = TermCell{R: ' ', Fg: ColorFg, Bg: ColorBg, InMap: false}
-		return c
-	}
-
-	return term.DrawBuffer[i]
-}
-
-func (term *terminal) DrawBufferInit() {
-	if len(term.DrawBuffer) == 0 {
-		term.DrawBuffer = make([]TermCell, TermHeight*TermWidth)
-	} else if len(term.DrawBuffer) != TermHeight*TermWidth {
-		term.DrawBuffer = make([]TermCell, TermHeight*TermWidth)
-	}
-}
 
 //JS frontend specific stuff
 func (term *terminal) InitElements() error {
@@ -357,11 +287,6 @@ func (term *terminal) PollEvent() (in TermInput) {
 	return in
 }
 
-func (term *terminal) highlightPos(pos position) {
-	c := term.GetCell(pos.X, pos.Y)
-	term.SetCell(pos.X, pos.Y, c.R, c.Fg, ColorHighlightDark, c.InMap)
-	//term.SetCell(pos.X, pos.Y, 'H', Color{255, 255, 255, 255}, Color{7, 54, 66, 255}, true)
-}
 
 //blocks, waiting for input such as mouse move (or a key)
 func (term *terminal) PressAnyKey() error {
