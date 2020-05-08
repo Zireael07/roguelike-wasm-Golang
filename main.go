@@ -600,7 +600,7 @@ func (g *game) takeTurn(e *GameEntity){
 	posComponent, _ := e.Components["position"].(PositionComponent)
 	//#0, as usual, is our own position
 	//log.Printf("Closest point: %v", path[1])
-	if path[1].X != from.X && path[1].Y != from.Y {
+	if path[1].X != from.X || path[1].Y != from.Y {
 		//path only takes into account walkable tiles, so no need for other checking
 		posComponent.Pos = path[1]
 		//bit of a dance because we're not using pointers to Components
