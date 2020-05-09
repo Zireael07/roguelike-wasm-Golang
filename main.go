@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand" //for RNG
 	"time"
+	"github.com/yuin/gopher-lua" //Lua
+
 )
 
 //just a stub for now
@@ -33,6 +35,15 @@ func (g *game) GameInit() {
 	m.InitMap()
 	m.generateArenaMap()
 	g.Map = m
+	g.LuaInit()
+}
+
+func (g *game) LuaInit(){
+	L := lua.NewState()
+	defer L.Close()
+	if err := L.DoString(`print("hello WASM from lua")`); err != nil {
+		panic(err)
+	}
 }
 
 type randomPick struct {
