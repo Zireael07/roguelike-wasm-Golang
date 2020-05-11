@@ -8,6 +8,7 @@ package main
 //all the images used, saved as byte strings
 func init() {
 	TileImgs = map[string][]byte{}
+
 	TileImgs["letter-0"] = []byte(`iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAV0lEQVQ4jWNgGHSAEVPo////CGlG
 dAWMuJTi0YOiAU0PpghhOTRxJpzW4QCUaYD7D4/TsdiA05e4NOALRzQNcLMZGRlxaaN9KKEAYmKa
 5LREcmodBcQAAJn8O/F+864QAAAAAElFTkSuQmCC
@@ -448,5 +449,17 @@ jk3PlmHbpnXjso7rw6b308P/69//HBz/HBz/HBz/HBz/HBz/HBz/HBysfHz/HBz/HBz/HBz/HBwA
 AABXYnq0tLRtbW1fGku6AAAAD3RFWHRTb2Z0d2FyZQBHcmFmeDKgolNqAAAALklEQVQYlWNgIBIw
 AgE6H1kEzEESgTIRIjAGI4JBrAya1STzGdD5dBLAAMRrAQBBhwBFq/1ziwAAAABJRU5ErkJggg==
 `)
+
+
+//scripts
+Scripts = map[string][]byte{}
+
+//TODO: Load script file to string
+Luascript := `print("hello WASM from lua")`
+
+//luckily, string to byteslice is easy
+//storing as byteslice is future-proof (when the script is actually loaded from file and not from string)
+Scripts["hello"] = []byte(Luascript)
+
 
 }

@@ -41,7 +41,15 @@ func (g *game) GameInit() {
 func (g *game) LuaInit(){
 	L := lua.NewState()
 	defer L.Close()
-	if err := L.DoString(`print("hello WASM from lua")`); err != nil {
+	// doFile doesn't work on WASM
+	//if err := L.DoFile("hello.lua"); err != nil {
+
+	//script := `print("hello WASM from lua")`
+
+	//this contains a byteslice
+	script := Scripts["hello"]
+
+	if err := L.DoString(string(script)); err != nil {
 		panic(err)
 	}
 }

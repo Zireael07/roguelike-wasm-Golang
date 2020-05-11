@@ -244,3 +244,5 @@ func getImage(cell TermCell) *image.RGBA {
 	}
 	return rgbaimg
 }
+
+var Scripts map[string][]byte
