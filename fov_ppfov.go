@@ -8,21 +8,6 @@ import (
   //"log"
 )
 
-//Golang's min and max work on float, so we provide our own for integers
-func Min(x, y int32) int32 {
-  if x < y {
-    return x
-  }
-  return y
- }
- 
- func Max(x, y int32) int32 {
-  if x > y {
-    return x
-  }
-  return y
- }
-
 
 //fake a hashset with a map
 type HashSet  map[string]struct{}

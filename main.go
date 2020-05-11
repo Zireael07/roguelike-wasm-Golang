@@ -96,8 +96,8 @@ func (g *game) ECSInit() {
 		npc := &GameEntity{}
 		npc.setupComponentsMap()
 		//random position in range 1-19
-		rnd_x := rand.Intn(19-1)+1
-		rnd_y := rand.Intn(19-1)+1
+		rnd_x := g.randRange(1,19)
+		rnd_y := g.randRange(1,19)
 		npc.AddComponent("position", PositionComponent{Pos:position{X:rnd_x, Y:rnd_y}})
 		npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
 		npc.AddComponent("blocker", BlockerComponent{})
@@ -137,14 +137,6 @@ func (g *game) ECSInit() {
 	//g.entities = append(g.entities, gun)
 }
 
-
-//seriously, not in std?
-func Abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
 
 func (pos position) Distance(to position) int {
 	deltaX := Abs(to.X - pos.X)
@@ -658,7 +650,7 @@ func (g *game) getAllBlockers(tg position) *GameEntity {
 	return ret
 }
 
-func (g *game) MovePlayer (ent *GameEntity, dir position){
+func (g *game) MovePlayer(ent *GameEntity, dir position){
 	//log.Printf("Move %v", dir)
 	posComponent, _ := ent.Components["position"].(PositionComponent)
 	tg := position{posComponent.Pos.X+dir.X, posComponent.Pos.Y+dir.Y}
