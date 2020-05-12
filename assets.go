@@ -454,8 +454,9 @@ AgE6H1kEzEESgTIRIjAGI4JBrAya1STzGdD5dBLAAMRrAQBBhwBFq/1ziwAAAABJRU5ErkJggg==
 //scripts
 Scripts = map[string][]byte{}
 
-//TODO: Load script file to string
-Luascript := `print("hello WASM from lua")`
+//Load script file to string
+Luascript, _ := getContent("http://localhost:8000/hello.lua")
+//Luascript := `print("hello WASM from lua")`
 
 //luckily, string to byteslice is easy
 //storing as byteslice is future-proof (when the script is actually loaded from file and not from string)
