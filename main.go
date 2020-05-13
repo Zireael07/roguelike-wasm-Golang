@@ -7,7 +7,7 @@ import (
 	"time"
 	"github.com/yuin/gopher-lua" //Lua
 	"layeh.com/gopher-luar"
-	"github.com/yuin/gluamapper"
+	//"github.com/yuin/gluamapper"
 )
 
 //just a stub for now
@@ -32,11 +32,16 @@ func (g *game) GameInit() {
 	//init RNG
 	rand.Seed(time.Now().UnixNano())
 	g.ECSInit()
+
 	m := &gamemap{width: 20, height:20}
 	m.InitMap()
 	m.generateArenaMap()
 	g.Map = m
 	g.LuaInit()
+}
+
+func (g *game) Add(who *GameEntity) {
+    g.entities = append(g.entities, who)
 }
 
 func (g *game) LuaInit(){
@@ -48,9 +53,19 @@ func (g *game) LuaInit(){
 	//script := `print("hello WASM from lua")`
 
 	//test Lua->Go interop
-	ent := &GameEntity{}
-	ent.setupComponentsMap() //crucial!
-    L.SetGlobal("ent", luar.New(L, ent))
+	//ent := &GameEntity{}
+	//ent.setupComponentsMap() //crucial!
+	L.SetGlobal("entities", luar.New(L, g))
+
+	L.SetGlobal("Ent", luar.NewType(L, GameEntity{}))
+	//L.SetGlobal("ent", luar.New(L, ent))
+	//components
+	L.SetGlobal("Position", luar.NewType(L, PositionComponent{}))
+	L.SetGlobal("Renderable", luar.NewType(L, RenderableComponent{}))
+	L.SetGlobal("Stats", luar.NewType(L, StatsComponent{}))
+	L.SetGlobal("Name", luar.NewType(L, NameComponent{}))
+	L.SetGlobal("Blocker", luar.NewType(L, BlockerComponent{}))
+	L.SetGlobal("NPC", luar.NewType(L, NPCComponent{}))
 
 	//this contains a byteslice
 	script := Scripts["hello"]
@@ -59,12 +74,24 @@ func (g *game) LuaInit(){
 		panic(err)
 	}
 
-	var data NameComponent
-	if err := gluamapper.Map(L.GetGlobal("data").(*lua.LTable), &data); err != nil {
-		panic(err)
-	   }
 	//debug
-	log.Printf("Name: %s", data.Name)  	 
+	log.Printf("Entities: %d", len(g.entities))
+	// e := g.entities[len(g.entities)-1]
+	// if e.HasComponents([]string{"position", "renderable", "name"}) {
+	// 	pos, _ := e.Components["position"].(PositionComponent)
+	// 	rend, _ := e.Components["renderable"].(RenderableComponent)
+	// 	name, _ := e.Components["name"].(NameComponent)
+	// 	log.Printf("pos: %v", pos)
+	// 	log.Printf("rend: %v", rend)
+	// 	log.Printf("name: %v", name)
+	// }
+
+	// var data NameComponent
+	// if err := gluamapper.Map(L.GetGlobal("data").(*lua.LTable), &data); err != nil {
+	// 	panic(err)
+	//    }
+	// //debug
+	// log.Printf("Name: %s", data.Name)  	 
 }
 
 type randomPick struct {
@@ -156,6 +183,8 @@ func (g *game) ECSInit() {
 	}
 	
 	//g.entities = append(g.entities, gun)
+	//debug
+	log.Printf("Entities: %d", len(g.entities))
 }
 
 
