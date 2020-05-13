@@ -11,7 +11,7 @@ type GameEntity struct {
 	Components map[string]Component
 }
 
-func (e *GameEntity) setupComponentsMap() {
+func (e *GameEntity) SetupComponentsMap() {
 	e.Components = make(map[string]Component)
 }
 
@@ -41,6 +41,7 @@ func (e *GameEntity) HasComponents(componentNames []string) bool {
 }
 
 func (e *GameEntity) AddComponent(name string, component Component) {
+	//log.Printf("Adding comp: %v ", component)
 	// Add a single component to the entity
 	e.Components[name] = component
 }
