@@ -6,7 +6,8 @@ import (
 	"math/rand" //for RNG
 	"time"
 	"github.com/yuin/gopher-lua" //Lua
-
+	"layeh.com/gopher-luar"
+	"github.com/yuin/gluamapper"
 )
 
 //just a stub for now
@@ -46,12 +47,24 @@ func (g *game) LuaInit(){
 
 	//script := `print("hello WASM from lua")`
 
+	//test Lua->Go interop
+	ent := &GameEntity{}
+	ent.setupComponentsMap() //crucial!
+    L.SetGlobal("ent", luar.New(L, ent))
+
 	//this contains a byteslice
 	script := Scripts["hello"]
 
 	if err := L.DoString(string(script)); err != nil {
 		panic(err)
 	}
+
+	var data NameComponent
+	if err := gluamapper.Map(L.GetGlobal("data").(*lua.LTable), &data); err != nil {
+		panic(err)
+	   }
+	//debug
+	log.Printf("Name: %s", data.Name)  	 
 }
 
 type randomPick struct {
@@ -264,7 +277,7 @@ func (g *game) describePosition(pos position) {
 					pos_c, _ := e.Components["position"].(PositionComponent)
 					if pos_c.Pos.X == pos.X && pos_c.Pos.Y == pos.Y {
 						name, _ := e.Components["name"].(NameComponent)
-						txt = name.name
+						txt = name.Name
 						break
 					}
 				}
@@ -387,7 +400,7 @@ func (g *game) renderInventory() {
 	y := 1
 	for _, it := range items {
 		name_c, _ := it.Components["name"].(NameComponent)
-		g.Term.DrawColoredText(x,y, name_c.name, Color{0,255,255,255})
+		g.Term.DrawColoredText(x,y, name_c.Name, Color{0,255,255,255})
 		y++
 	}
 

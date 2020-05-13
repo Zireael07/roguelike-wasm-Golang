@@ -6,6 +6,7 @@ type Component interface {
 }
 
 //components
+//NOTE: For Lua data interop to work, struct field names must be capitalized
 
 // Position Component
 type PositionComponent struct {
@@ -51,7 +52,7 @@ func (sc StatsComponent) IsAIComponent() bool {
 }
 
 type NameComponent struct {
-	name string
+	Name string
 }
 
 func (nc NameComponent) IsAIComponent() bool {

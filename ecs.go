@@ -2,6 +2,10 @@
 
 package main
 
+import (
+	"log"
+)
+
 type GameEntity struct {
 	ID     int
 	Components map[string]Component
@@ -77,4 +81,10 @@ func (e *GameEntity) GetComponent(componentName string) Component {
 	} else {
 		return nil
 	}
+}
+
+//for Lua support
+//stub
+func (e *GameEntity) AddComponentLua(componentName string) {
+	log.Printf("Lua tried adding component %s", componentName)
 }
