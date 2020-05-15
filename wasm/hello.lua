@@ -5,6 +5,9 @@ data_cop = {
    ["position"] = {3,3}, ["renderable"] = {{0,0,255,255}, "c"}, ["stats"] = { hp = 10, power =2 }, ["name"] = "cop"
 }
 
+data_thug = {
+   ["position"] = {7,7}, ["renderable"] = {{255,0,0,255}, "h"}, ["stats"] = { hp = 10, power =2 }, ["name"] = "thug"
+}
 
 
 ------------------------------
@@ -72,3 +75,4 @@ end
 
 -- do stuff!
 spawn_npc(data_cop)
+spawn_npc(data_thug)
