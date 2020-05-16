@@ -66,6 +66,8 @@ func (g *game) LuaInit(){
 	L.SetGlobal("Name", luar.NewType(L, NameComponent{}))
 	L.SetGlobal("Blocker", luar.NewType(L, BlockerComponent{}))
 	L.SetGlobal("NPC", luar.NewType(L, NPCComponent{}))
+	L.SetGlobal("Item", luar.NewType(L, ItemComponent{}))
+	L.SetGlobal("Medkit", luar.NewType(L, MedkitComponent{}))
 
 	//this contains a byteslice
 	script := Scripts["hello"]
@@ -76,15 +78,6 @@ func (g *game) LuaInit(){
 
 	//debug
 	log.Printf("Entities: %d", len(g.entities))
-	// e := g.entities[len(g.entities)-1]
-	// if e.HasComponents([]string{"position", "renderable", "name"}) {
-	// 	pos, _ := e.Components["position"].(PositionComponent)
-	// 	rend, _ := e.Components["renderable"].(RenderableComponent)
-	// 	name, _ := e.Components["name"].(NameComponent)
-	// 	log.Printf("pos: %v", pos)
-	// 	log.Printf("rend: %v", rend)
-	// 	log.Printf("name: %v", name)
-	// }
 
 	// var data NameComponent
 	// if err := gluamapper.Map(L.GetGlobal("data").(*lua.LTable), &data); err != nil {
@@ -468,7 +461,7 @@ func (g *game) renderInventory() {
 												log.Printf("Selected use")
 												if items[id].HasComponent("medkit") {
 													//use the medkit
-													heal := items[id].Components["medkit"].(MedkitComponent).heal
+													heal := items[id].Components["medkit"].(MedkitComponent).Heal
 													//heal the player
 													statsComp := g.entities[0].Components["stats"].(StatsComponent)
 													old_hp := g.entities[0].Components["stats"].(StatsComponent).Hp

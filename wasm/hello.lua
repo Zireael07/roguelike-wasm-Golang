@@ -9,6 +9,9 @@ data_thug = {
    ["position"] = {7,7}, ["renderable"] = {{255,0,0,255}, "h"}, ["stats"] = { hp = 10, power =2 }, ["name"] = "thug"
 }
 
+data_medkit = {
+   ["position"] = {4,4}, ["renderable"] = {{255,0,0,255}, "!"}, ["name"] = "medkit", ["comps"] = "medkit"
+}
 
 ------------------------------
 --FUNCTIONS
@@ -73,6 +76,46 @@ function spawn_npc(data)
    entities:add(ent)
 end
 
+function spawn_item(data)
+   ent = Ent()
+   ent:SetupComponentsMap()
+   --add components from Lua
+   pos = Position()
+   -- lua indexes from 1 not 0 as Python does
+   pos.Pos.X = data["position"][1]
+   pos.Pos.Y = data["position"][2]
+
+   render = Renderable()
+   render.Color.R = data["renderable"][1][1]
+   render.Color.G = data["renderable"][1][2]
+   render.Color.B = data["renderable"][1][3]
+   render.Color.A = data["renderable"][1][4]
+   render.Glyph = string.byte(data['renderable'][2], 1)
+
+   name = Name()
+   name.Name = data["name"]
+
+   -- no need to define this one in data
+   item = Item()
+   
+   --the minus is the unary operator, dereferencing pointers
+   ent:AddComponent("position", -pos)
+   ent:AddComponent("renderable", -render)
+   ent:AddComponent("name", -name)
+   ent:AddComponent("item", -item)
+
+   --additional components
+   if data["comps"] == "medkit" then
+      comp = Medkit()
+      comp.Heal = 4
+      ent:AddComponent("medkit", -comp)
+   end
+
+   entities:add(ent)
+end
+
+
 -- do stuff!
 spawn_npc(data_cop)
 spawn_npc(data_thug)
+spawn_item(data_medkit)

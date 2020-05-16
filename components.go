@@ -76,7 +76,7 @@ func (ic InBackpackComponent) IsAIComponent() bool {
 }
 
 type MedkitComponent struct {
-	heal int
+	Heal int
 }
 
 func (mc MedkitComponent) IsAIComponent() bool {
