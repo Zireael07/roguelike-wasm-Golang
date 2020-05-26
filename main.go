@@ -290,16 +290,21 @@ func (g *game) describePosition(pos position) {
 		return
 	}
 
+	sym_txt := ' '
+	sym_col := ColorFg
 	txt := ""
 
 	for _, e := range g.entities {
 		if e != nil {
-			if e.HasComponents([]string{"position", "name"}) {
+			if e.HasComponents([]string{"position", "name", "renderable"}) {
 				if !e.HasComponents([]string{"backpack"}) {
 					pos_c, _ := e.Components["position"].(PositionComponent)
 					if pos_c.Pos.X == pos.X && pos_c.Pos.Y == pos.Y {
 						name, _ := e.Components["name"].(NameComponent)
+						rend, _ := e.Components["renderable"].(RenderableComponent)
 						txt = name.Name
+						sym_txt = rend.Glyph
+						sym_col = rend.Color
 						break
 					}
 				}
@@ -307,7 +312,8 @@ func (g *game) describePosition(pos position) {
 		}
 	}
 
-	g.Term.DrawText(25, 3, txt)
+	g.Term.SetCell(int(25), int(3), sym_txt, sym_col, ColorBg, false)
+	g.Term.DrawText(25, 4, txt)
 
 }
 
