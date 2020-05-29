@@ -9,12 +9,18 @@ type maptile struct {
 	visible bool
 }
 
+type freetile struct {
+	tile *maptile
+	pos position
+}
+
 
 //because 'map' in Go is a data structure...
 type gamemap struct {
 	width int
 	height int
 	tiles [][]*maptile //2d array/slice of tiles, nothing unusual
+	freetiles []*freetile //list of all free tiles
 }
 
 func (t *maptile) IsWall() bool {
@@ -47,6 +53,25 @@ func (m *gamemap) generateArenaMap() {
 				m.tiles[x][y] = &maptile{glyph: '#', blocks_move: true, visible: false}
 			} else {
 				m.tiles[x][y] = &maptile{glyph: '.', blocks_move: false, visible: false}
+				//m.freetiles = append(m.freetiles, m.tiles[x][y]) //add to list of free tiles
+			}
+		}
+	}
+
+	//two random pillars
+	for i :=0; i < 2; i++ {
+		//random position in range 4-18
+		rnd_x := randRange(4,18)
+		rnd_y := randRange(4,18)
+		m.tiles[rnd_x][rnd_y] = &maptile{glyph: '#', blocks_move: true, visible: false}
+	}
+
+	//mark free tiles as such
+	for x := 0; x <= m.width; x++ {
+		for y := 0; y <= m.height; y++ {
+			if !m.tiles[x][y].IsWall() {
+				free := &freetile{tile: m.tiles[x][y], pos: position{X:x, Y:y}}
+				m.freetiles = append(m.freetiles, free) //add to list of free tiles
 			}
 		}
 	}

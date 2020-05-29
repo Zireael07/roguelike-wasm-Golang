@@ -31,12 +31,14 @@ type position struct {
 func (g *game) GameInit() {
 	//init RNG
 	rand.Seed(time.Now().UnixNano())
-	g.ECSInit()
 
 	m := &gamemap{width: 20, height:20}
 	m.InitMap()
 	m.generateArenaMap()
 	g.Map = m
+
+	g.ECSInit()
+
 	g.LuaInit()
 }
 
@@ -137,8 +139,15 @@ func (g *game) ECSInit() {
 		npc := &GameEntity{}
 		npc.SetupComponentsMap()
 		//random position in range 1-19
-		rnd_x := g.randRange(1,19)
-		rnd_y := g.randRange(1,19)
+		//rnd_x := g.randRange(1,19)
+		//rnd_y := g.randRange(1,19)
+		
+		//random position in free list
+		rnd_pos_id := randRange(1, len(g.Map.freetiles)-1)
+		rnd_pos := g.Map.freetiles[rnd_pos_id]
+		rnd_x := rnd_pos.pos.X
+		rnd_y := rnd_pos.pos.Y
+		
 		npc.AddComponent("position", PositionComponent{Pos:position{X:rnd_x, Y:rnd_y}})
 		npc.AddComponent("renderable", RenderableComponent{Color{255, 0,0,255}, 'h'})
 		npc.AddComponent("blocker", BlockerComponent{})
@@ -146,7 +155,7 @@ func (g *game) ECSInit() {
 		npc.AddComponent("stats", StatsComponent{Hp:10, Max_hp: 10, Power:2})
 		npc.AddComponent("name", NameComponent{"Thug"})
 		g.entities = append(g.entities, npc)
-		//log.Printf("Added npc...")
+		log.Printf("Added npc @ %d, %d ...", rnd_x, rnd_y)
 	}
 
 	//item

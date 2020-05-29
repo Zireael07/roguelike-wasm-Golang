@@ -27,7 +27,7 @@ func Max(x, y int32) int32 {
 	return y
 }
 
-func (g *game) randRange(min, max int) int {
+func randRange(min, max int) int {
 	//random position in range 1-19
 	return rand.Intn(max-min)+min
 }
