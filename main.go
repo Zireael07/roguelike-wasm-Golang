@@ -23,11 +23,6 @@ type Message struct {
 	Color Color
 }
 
-type position struct {
-	X int
-	Y int
-}
-
 func (g *game) GameInit() {
 	//init RNG
 	rand.Seed(time.Now().UnixNano())
@@ -190,19 +185,6 @@ func (g *game) ECSInit() {
 }
 
 
-func (pos position) Distance(to position) int {
-	deltaX := Abs(to.X - pos.X)
-	deltaY := Abs(to.Y - pos.Y)
-	if deltaX > deltaY {
-		return deltaX
-	}
-	return deltaY
-}
-
-func (pos position) sub(other position) position {
-	return position{pos.X - other.X, pos.Y - other.Y}
-}
-
 func (pos position) isValid(g *game) bool {
 	if pos.X >= 0 && pos.Y >= 0 && pos.X <= g.Map.width && pos.Y <= g.Map.height {
 		return true
@@ -294,6 +276,13 @@ func (g *game) describePosition(pos position) {
 	}
 
 	g.Term.DrawText(25, 2, fmt.Sprintf("X:%d Y:%d", pos.X, pos.Y))
+	//display directions
+	pl_posComponent, _ := g.entities[0].Components["position"].(PositionComponent) 
+	if pos.X != pl_posComponent.Pos.X || pos.Y != pl_posComponent.Pos.Y {
+		dir := pos.Dir(pl_posComponent.Pos)
+		//log.Printf("Direction: %s ", dir.String())
+		g.Term.DrawText(34, 2, fmt.Sprintf("(%s)", dir.String()))
+	}
 
 	if !g.Map.tiles[pos.X][pos.Y].explored{
 		return
