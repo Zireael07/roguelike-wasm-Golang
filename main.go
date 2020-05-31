@@ -66,6 +66,9 @@ func (g *game) LuaInit(){
 	L.SetGlobal("Item", luar.NewType(L, ItemComponent{}))
 	L.SetGlobal("Medkit", luar.NewType(L, MedkitComponent{}))
 
+	//map
+	L.SetGlobal("map", luar.New(L, g.Map))
+
 	//this contains a byteslice
 	script := Scripts["hello"]
 

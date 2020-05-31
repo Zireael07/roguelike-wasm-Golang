@@ -76,3 +76,19 @@ func (m *gamemap) generateArenaMap() {
 		}
 	}
 }
+
+//this one is Lua-exposed
+func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune) {
+	// Generates a large, empty room, with walls ringing the outside edges
+	for x := 0; x <= m.width; x++ {
+		for y := 0; y <= m.height; y++ {
+			if x == 0 || x == m.width || y == 0 || y == m.height {
+				m.tiles[x][y] = &maptile{glyph: wall_glyph, blocks_move: true, visible: false}
+			} else {
+				m.tiles[x][y] = &maptile{glyph: floor_glyph, blocks_move: false, visible: false}
+				free := &freetile{tile: m.tiles[x][y], pos: position{X:x, Y:y}}
+				m.freetiles = append(m.freetiles, free) //add to list of free tiles
+			}
+		}
+	}
+}

@@ -13,10 +13,14 @@ data_medkit = {
    ["position"] = {4,4}, ["renderable"] = {{255,0,0,255}, "!"}, ["name"] = "medkit", ["comps"] = "medkit"
 }
 
+data_map = {
+   ["wall"] = "#", ["floor"] = " "
+}
+
 ------------------------------
 --FUNCTIONS
 
-print("hello WASM from lua")
+print("hello WASM from lua!!")
 
 -- very basic function to dump table to readable format
 function dump(o)
@@ -114,8 +118,17 @@ function spawn_item(data)
    entities:add(ent)
 end
 
+function make_map(data)
+   print("Making map...")
+   print(dump(data))
+   --convert string to Go's rune equivalent (int)
+   map:GenerateArenaMapData(string.byte(data["wall"], 1), string.byte(data["floor"],1))
+end
 
 -- do stuff!
 spawn_npc(data_cop)
 spawn_npc(data_thug)
 spawn_item(data_medkit)
+
+--print("Map...")
+make_map(data_map)
