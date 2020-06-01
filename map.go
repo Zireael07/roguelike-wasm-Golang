@@ -86,6 +86,24 @@ func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune) {
 				m.tiles[x][y] = &maptile{glyph: wall_glyph, blocks_move: true, visible: false}
 			} else {
 				m.tiles[x][y] = &maptile{glyph: floor_glyph, blocks_move: false, visible: false}
+				//free := &freetile{tile: m.tiles[x][y], pos: position{X:x, Y:y}}
+				//m.freetiles = append(m.freetiles, free) //add to list of free tiles
+			}
+		}
+	}
+
+	//two random pillars
+	for i :=0; i < 2; i++ {
+		//random position in range 4-18
+		rnd_x := randRange(4,18)
+		rnd_y := randRange(4,18)
+		m.tiles[rnd_x][rnd_y] = &maptile{glyph: wall_glyph, blocks_move: true, visible: false}
+	}
+
+	//mark free tiles as such
+	for x := 0; x <= m.width; x++ {
+		for y := 0; y <= m.height; y++ {
+			if !m.tiles[x][y].IsWall() {
 				free := &freetile{tile: m.tiles[x][y], pos: position{X:x, Y:y}}
 				m.freetiles = append(m.freetiles, free) //add to list of free tiles
 			}
