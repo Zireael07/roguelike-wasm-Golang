@@ -3,6 +3,7 @@ package main
 
 type maptile struct {
 	glyph rune
+	fgColor Color
 	blocks_move bool
 	//FOV
 	explored bool
@@ -50,9 +51,9 @@ func (m *gamemap) generateArenaMap() {
 	for x := 0; x <= m.width; x++ {
 		for y := 0; y <= m.height; y++ {
 			if x == 0 || x == m.width || y == 0 || y == m.height {
-				m.tiles[x][y] = &maptile{glyph: '#', blocks_move: true, visible: false}
+				m.tiles[x][y] = &maptile{glyph: '#', fgColor: Color{255,255,255, 255}, blocks_move: true, visible: false}
 			} else {
-				m.tiles[x][y] = &maptile{glyph: '.', blocks_move: false, visible: false}
+				m.tiles[x][y] = &maptile{glyph: '.', fgColor: Color{255,255,255, 255}, blocks_move: false, visible: false}
 				//m.freetiles = append(m.freetiles, m.tiles[x][y]) //add to list of free tiles
 			}
 		}
@@ -63,7 +64,7 @@ func (m *gamemap) generateArenaMap() {
 		//random position in range 4-18
 		rnd_x := randRange(4,18)
 		rnd_y := randRange(4,18)
-		m.tiles[rnd_x][rnd_y] = &maptile{glyph: '#', blocks_move: true, visible: false}
+		m.tiles[rnd_x][rnd_y] = &maptile{glyph: '#', fgColor: Color{255,255,255,255}, blocks_move: true, visible: false}
 	}
 
 	//mark free tiles as such
@@ -78,14 +79,14 @@ func (m *gamemap) generateArenaMap() {
 }
 
 //this one is Lua-exposed
-func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune) {
+func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune, wall_color, floor_color Color) {
 	// Generates a large, empty room, with walls ringing the outside edges
 	for x := 0; x <= m.width; x++ {
 		for y := 0; y <= m.height; y++ {
 			if x == 0 || x == m.width || y == 0 || y == m.height {
-				m.tiles[x][y] = &maptile{glyph: wall_glyph, blocks_move: true, visible: false}
+				m.tiles[x][y] = &maptile{glyph: wall_glyph, fgColor: wall_color, blocks_move: true, visible: false}
 			} else {
-				m.tiles[x][y] = &maptile{glyph: floor_glyph, blocks_move: false, visible: false}
+				m.tiles[x][y] = &maptile{glyph: floor_glyph, fgColor: floor_color, blocks_move: false, visible: false}
 				//free := &freetile{tile: m.tiles[x][y], pos: position{X:x, Y:y}}
 				//m.freetiles = append(m.freetiles, free) //add to list of free tiles
 			}
@@ -97,7 +98,7 @@ func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune) {
 		//random position in range 4-18
 		rnd_x := randRange(4,18)
 		rnd_y := randRange(4,18)
-		m.tiles[rnd_x][rnd_y] = &maptile{glyph: wall_glyph, blocks_move: true, visible: false}
+		m.tiles[rnd_x][rnd_y] = &maptile{glyph: wall_glyph, fgColor: wall_color, blocks_move: true, visible: false}
 	}
 
 	//mark free tiles as such

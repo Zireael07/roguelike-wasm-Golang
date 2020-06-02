@@ -68,6 +68,7 @@ func (g *game) LuaInit(){
 
 	//map
 	L.SetGlobal("map", luar.New(L, g.Map))
+	L.SetGlobal("Color", luar.NewType(L, Color{}))
 
 	//this contains a byteslice
 	script := Scripts["hello"]
@@ -222,7 +223,7 @@ func (g *game) renderMap(){
 	for x := 0; x <= g.Map.width; x++ {
 		for y := 0; y <= g.Map.height; y++ {
 			if (g.Map.tiles[x][y].visible){
-				g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, Color{255,255,255,255},Color{0,0,0,255}, true)
+				g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, g.Map.tiles[x][y].fgColor, Color{0,0,0,255}, true)
 			} else if (g.Map.tiles[x][y].explored) {
 				g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, Color{120,120,120,255},Color{0,0,0,255}, true)
 			}

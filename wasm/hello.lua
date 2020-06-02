@@ -14,7 +14,7 @@ data_medkit = {
 }
 
 data_map = {
-   ["wall"] = "#", ["floor"] = " "
+   ["wall"] = {"#", {0, 255,0,255}}, ["floor"] = {" ", { 120,120,120, 255 } }
 }
 
 ------------------------------
@@ -119,10 +119,23 @@ function spawn_item(data)
 end
 
 function make_map(data)
-   print("Making map...")
+   --print("Making map...")
    print(dump(data))
+
+   wall_color = Color()
+   wall_color.R = data["wall"][2][1]
+   wall_color.G = data["wall"][2][2]
+   wall_color.B = data["wall"][2][3]
+   wall_color.A = data["wall"][2][4]
+
+   floor_color = Color()
+   floor_color.R = data["floor"][2][1]
+   floor_color.G = data["floor"][2][2]
+   floor_color.B = data["floor"][2][3]
+   floor_color.A = data["floor"][2][4]
+
    --convert string to Go's rune equivalent (int)
-   map:GenerateArenaMapData(string.byte(data["wall"], 1), string.byte(data["floor"],1))
+   map:GenerateArenaMapData(string.byte(data["wall"][1], 1), string.byte(data["floor"][1],1), -wall_color, -floor_color)
 end
 
 -- do stuff!
