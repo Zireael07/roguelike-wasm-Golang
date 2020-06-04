@@ -263,7 +263,7 @@ func (g *game) render(){
 	g.renderBar(27,1,10, float32(g.entities[0].Components["stats"].(StatsComponent).Hp), float32(g.entities[0].Components["stats"].(StatsComponent).Max_hp), 
 	Color{255,115, 155, 255}, Color{128,0,0,255})
 
-	g.Term.DrawColoredText(25, 5, "Inventory", Color{0,255,255,255})
+	g.Term.DrawColoredText(25, 6, "Inventory", Color{0,255,255,255})
 
 	//draw message log
 	y := 21
@@ -271,6 +271,18 @@ func (g *game) render(){
 		g.Term.DrawColoredText(0, y, msg.text, msg.Color)
 		y++
 	}
+}
+
+//NOTE: Not very tenable because it requires every color to be listed in terminal.go:20
+func (g *game) getTerrainName(terrain *maptile) string {
+	ret := ""
+	if terrain.glyph == '#' && terrain.fgColor == ColorFg {
+		ret = "wall"
+	}
+	if terrain.glyph == '.' && terrain.fgColor == ColorGray {
+		ret = "floor"
+	}
+	return ret
 }
 
 func (g *game) describePosition(pos position) {
@@ -291,6 +303,10 @@ func (g *game) describePosition(pos position) {
 	if !g.Map.tiles[pos.X][pos.Y].explored{
 		return
 	}
+
+	terrain := ""
+	terrain = g.getTerrainName(g.Map.tiles[pos.X][pos.Y])
+	g.Term.DrawText(25,3, terrain)
 
 	sym_txt := ' '
 	sym_col := ColorFg
@@ -314,8 +330,8 @@ func (g *game) describePosition(pos position) {
 		}
 	}
 
-	g.Term.SetCell(int(25), int(3), sym_txt, sym_col, ColorBg, false)
-	g.Term.DrawText(25, 4, txt)
+	g.Term.SetCell(int(25), int(4), sym_txt, sym_col, ColorBg, false)
+	g.Term.DrawText(25, 5, txt)
 
 }
 
@@ -563,8 +579,8 @@ func (g *game) HandlePlayerEvent() () {
 				g.Term.Flush()
 			} else {
 				//did we click the right panel menu?
-				if pos.X > 20 && pos.Y >= 5 {
-					if pos.Y == 5 {
+				if pos.X > 20 && pos.Y >= 6 {
+					if pos.Y == 6 {
 						g.Term.Clear()
 						g.render()
 						g.renderInventory();
