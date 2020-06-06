@@ -32,3 +32,9 @@ jobs:
 
     - name: Build
       run: GOOS=js GOARCH=wasm go build -v .
+
+    - name: Upload wasm
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact
+        path: . # /home/runner/work/roguelike-wasm-Golang/roguelike-wasm-Golang
