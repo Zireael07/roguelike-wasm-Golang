@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="initial-scale=1">
+</head>
+<body style="background-color: aqua;">
+  <script src="wasm_exec.js"></script>
+  <div id="gamediv" style="background-color: black;">
+    <canvas id="gamecanvas" width="1600" height="624" tabindex="1">
+    Game Screen
+    </canvas>
+  </div>
+  <!-- <div id=fps></div> -->
+  
+  <script>
+    // this is where we load
+    (async () => {
+      const resp = await fetch('main.wasm');
+      //show errors if any
+      if (!resp.ok) {
+        const pre = document.createElement('pre');
+        pre.innerText = await resp.text();
+        document.body.appendChild(pre);
+        return;
+      }
+      const src = await resp.arrayBuffer();
+      const go = new Go();
+      const result = await WebAssembly.instantiate(src, go.importObject);
+      go.run(result.instance);
+    })();
+    </script>
+</body>
+
+
+</html>
