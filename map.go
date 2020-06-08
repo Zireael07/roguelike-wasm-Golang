@@ -1,5 +1,8 @@
 package main
 
+import (
+	"sort"
+)
 
 type maptile struct {
 	glyph rune
@@ -101,6 +104,9 @@ func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune, wall_color,
 		m.tiles[rnd_x][rnd_y] = &maptile{glyph: wall_glyph, fgColor: wall_color, blocks_move: true, visible: false}
 	}
 
+	// test
+	m.tiles[1][1] = &maptile{glyph: wall_glyph, fgColor: wall_color, blocks_move: true, visible: false}
+
 	//mark free tiles as such
 	for x := 0; x <= m.width; x++ {
 		for y := 0; y <= m.height; y++ {
@@ -110,4 +116,47 @@ func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune, wall_color,
 			}
 		}
 	}
+}
+
+type distpos struct {
+	pos position
+	dist int
+}
+
+func (m *gamemap) findGridInRange(dist int, pos position) []distpos {
+	var coords []distpos
+
+	for x := pos.X; x <= pos.X + dist; x++ {
+		for y := pos.Y; y <= pos.Y + dist; y++{
+			if x > 0 && x <= m.width && y > 0 && y <= m.height {
+				cand := position{X:x, Y:y}
+				distance := cand.Distance(pos)
+				coord := distpos{pos:cand, dist:distance}
+				coords = append(coords, coord)
+			}
+		}
+	}
+
+	//sort
+	sort.Slice(coords, func(i, j int) bool { return coords[i].dist < coords[j].dist } )
+
+	return coords;
+}
+
+func (m *gamemap) freeGridInRange(dist int, pos position) []position {
+	coords := m.findGridInRange(dist, pos)
+
+	free := m.freetiles
+
+	var out []position
+
+	for _, coord := range coords {
+		for _, fre := range free {
+			if fre.pos.X == coord.pos.X && fre.pos.Y == coord.pos.Y {
+				out = append(out, coord.pos)
+			}
+		}
+	}
+
+	return out
 }

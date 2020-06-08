@@ -29,12 +29,12 @@ func (g *game) GameInit() {
 
 	m := &gamemap{width: 20, height:20}
 	m.InitMap()
-	m.generateArenaMap()
+	//m.generateArenaMap()
 	g.Map = m
 
-	g.ECSInit()
-
 	g.LuaInit()
+	//Lua generates the map, among other things
+	g.ECSInit()
 }
 
 func (g *game) Add(who *GameEntity) {
@@ -127,11 +127,18 @@ func (g *game) ECSInit() {
 	player := &GameEntity{}
 	player.SetupComponentsMap() //crucial!
 	player.AddComponent("player", PlayerComponent{})
-	player.AddComponent("position", PositionComponent{Pos:position{X: 1, Y: 1}})
+
+	//closest free position to 1,1
+	pos_s := g.Map.freeGridInRange(5, position{X:1, Y: 1})
+	player.AddComponent("position", PositionComponent{Pos:pos_s[0]})
+
+	//player.AddComponent("position", PositionComponent{Pos:position{X: 1, Y: 1}})
 	player.AddComponent("renderable", RenderableComponent{Color{255,255,255,255}, '@'})
 	player.AddComponent("stats", StatsComponent{Hp:20, Max_hp:20, Power:5})
 	player.AddComponent("name", NameComponent{"Player"})
-	g.entities = append(g.entities, player)
+	
+	g.entities = moveToFront(player, g.entities)
+	//g.entities = append(g.entities, player)
 	//NPCs!
 	npcs_num := 2
 	for i :=0; i < npcs_num; i++ {
@@ -412,6 +419,13 @@ func (g *game) takeTurn(e *GameEntity){
 	log.Printf("Path: %v", path);
 
 	posComponent, _ := e.Components["position"].(PositionComponent)
+
+	//paranoia
+	if len(path) < 2 {
+		log.Printf("Path too short!")
+		return
+	}
+
 	//#0, as usual, is our own position
 	//log.Printf("Closest point: %v", path[1])
 	if path[1].X != from.X || path[1].Y != from.Y {
@@ -569,6 +583,7 @@ func (g *game) HandlePlayerEvent() () {
 		//left
 		case 0:
 			// move player
+			//TODO: get player entity via a Player component/tag
 			pl_posComponent, _ := g.entities[0].Components["position"].(PositionComponent) 
 			if (pl_posComponent.Pos.Distance(pos) < 2){
 				dir := pos.sub(pl_posComponent.Pos)

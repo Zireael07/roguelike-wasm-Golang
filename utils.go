@@ -31,3 +31,26 @@ func randRange(min, max int) int {
 	//random position in range 1-19
 	return rand.Intn(max-min)+min
 }
+
+// from https://github.com/golang/go/wiki/SliceTricks
+// moveToFront moves needle to the front of haystack, in place if possible.
+func moveToFront(needle *GameEntity, haystack []*GameEntity) []*GameEntity {
+	if len(haystack) == 0 || haystack[0] == needle {
+		return haystack
+	}
+	var prev *GameEntity
+	for i, elem := range haystack {
+		switch {
+		case i == 0:
+			haystack[0] = needle
+			prev = elem
+		case elem == needle:
+			haystack[i] = prev
+			return haystack
+		default:
+			haystack[i] = prev
+			prev = elem
+		}
+	}
+	return append(haystack, prev)
+}
