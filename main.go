@@ -30,6 +30,7 @@ func (g *game) GameInit() {
 	m := &gamemap{width: 20, height:20}
 	m.InitMap()
 	//m.generateArenaMap()
+	m.generatePerlinMap()
 	g.Map = m
 
 	g.LuaInit()

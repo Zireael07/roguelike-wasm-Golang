@@ -144,4 +144,4 @@ spawn_npc(data_thug)
 spawn_item(data_medkit)
 
 --print("Map...")
-make_map(data_map)
+--make_map(data_map)
