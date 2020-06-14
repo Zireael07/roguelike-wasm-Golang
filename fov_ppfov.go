@@ -171,16 +171,23 @@ func visit_coord(visited HashSet, start_x, start_y, dir_x, dir_y int32, vision_b
   view_index := 0;
   
   //log.Printf("Active views: %d ", len(active_views))
-for view_index < len(active_views){
-  view_ref := active_views[view_index]
-   if view_ref.steep_line.below_or_collinear_p(bottom_right.a, bottom_right.b) {
-        view_index += 1;
-  } else if view_ref.shallow_line.above_or_collinear_p(top_left.a, top_left.b) {
-        return;
-  } else {
-        break;
+  
+  // this is an equivalent of a 'while' loop
+  for view_index < len(active_views){
+    view_ref := active_views[view_index]
+    if view_ref.steep_line.below_or_collinear_p(bottom_right.a, bottom_right.b) {
+          view_index += 1;
+    } else if view_ref.shallow_line.above_or_collinear_p(top_left.a, top_left.b) {
+          return;
+    } else {
+          break;
+    }
   }
-}
+
+  if view_index == len(active_views){
+    //coordinate is below all the fields
+    return
+  }
   
   target := intpair{start_x + (offset_x * dir_x), start_y + (offset_y * dir_y)};
 
@@ -198,7 +205,6 @@ for view_index < len(active_views){
   }
 
   if vision_blocked(target.a, target.b) {
-    
     if active_views[view_index].shallow_line.above_p(bottom_right.a, bottom_right.b) &&
        active_views[view_index].steep_line.below_p(top_left.a, top_left.b){
         // The shallow line and steep line both intersect this location, and
