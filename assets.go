@@ -455,7 +455,7 @@ AgE6H1kEzEESgTIRIjAGI4JBrAya1STzGdD5dBLAAMRrAQBBhwBFq/1ziwAAAABJRU5ErkJggg==
 Scripts = map[string][]byte{}
 
 //Load script file to string
-Luascript, _ := getContent("/hello.lua") // relative path to make GH version work
+Luascript, _ := getContent("./hello.lua") // relative path to make GH version work
 //Luascript := `print("hello WASM from lua")`
 
 //luckily, string to byteslice is easy
