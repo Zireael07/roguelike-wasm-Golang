@@ -64,7 +64,9 @@ func newGame(term *terminal) {
 			return true
 		} else { return false } 
 	}
-	g.pp_FOV(1, 1, 5, opaque, visit, inmap)	
+	//FOV for player position (player is always #0)
+	pl_pos := g.entities[0].Components["position"].(PositionComponent).Pos
+	g.pp_FOV(int32(pl_pos.X), int32(pl_pos.Y), 5, opaque, visit, inmap)	
 	//make the game run!
 	g.gameeventLoop()
 

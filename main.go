@@ -130,7 +130,13 @@ func (g *game) ECSInit() {
 	player.AddComponent("player", PlayerComponent{})
 
 	//closest free position to 1,1
-	pos_s := g.Map.freeGridInRange(5, position{X:1, Y: 1})
+	pos_s := g.Map.freeGridInRange(20, position{X:1, Y: 1})
+	if len(pos_s) < 1 {
+		//TODO: assert/bail out if no grid in range
+		log.Printf("Could not place player")
+	} else {
+		log.Printf("Placed player at %v", pos_s[0])
+	}
 	player.AddComponent("position", PositionComponent{Pos:pos_s[0]})
 
 	//player.AddComponent("position", PositionComponent{Pos:position{X: 1, Y: 1}})
