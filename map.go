@@ -2,6 +2,7 @@ package main
 
 import (
 	"sort"
+	"log"
 	"math/rand" //for RNG
 	"github.com/ojrac/opensimplex-go"
 )
@@ -121,7 +122,9 @@ func (m *gamemap) GenerateArenaMapData(wall_glyph, floor_glyph rune, wall_color,
 }
 
 func (m *gamemap) generatePerlinMap() {
-	noise := opensimplex.New(rand.Int63())
+	rnd := rand.Int63()
+	log.Printf("Random: %d", rnd)
+	noise := opensimplex.New(rnd)
 	//heightmap = a 2D array of noise data
 	heightmap := make([][]float64, m.width+1)
 	for i := range heightmap {
@@ -132,14 +135,14 @@ func (m *gamemap) generatePerlinMap() {
 		for y := 0; y <= m.height; y++ {
 			xFloat := float64(x) / float64(m.width)
 			yFloat := float64(y) / float64(m.height)
-			heightmap[x][y] = noise.Eval2(xFloat, yFloat)
+			heightmap[x][y] = noise.Eval2(xFloat, yFloat) * 255 // because default values are very small
 		}
 	}
 
 	//actual map
 	for x := 0; x <= m.width; x++ {
 		for y := 0; y <= m.height; y++ {
-			if heightmap[x][y] > 0.2 {
+			if heightmap[x][y] > 0 {
 				m.tiles[x][y] = &maptile{glyph: '#', fgColor: Color{255,255,255, 255}, blocks_move: true, visible: false}
 			} else {
 				m.tiles[x][y] = &maptile{glyph: '.', fgColor: Color{255,255,255, 255}, blocks_move: false, visible: false}
