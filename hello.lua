@@ -48,6 +48,18 @@ function spawn_npc(data)
    pos.Pos.X = data["position"][1]
    pos.Pos.Y = data["position"][2]
 
+   --closest free position
+   --the minus is the unary operator, dereferencing pointers
+   pos_s = map:FreeGridInRange(20, -pos.Pos)
+   --print(dump(pos_s))
+   if #pos_s < 1 then
+      return
+   else
+      pos.Pos = -pos_s[1]
+      print(pos.Pos.X)
+      print(pos.Pos.Y)
+   end
+
    render = Renderable()
    render.Color.R = data["renderable"][1][1]
    render.Color.G = data["renderable"][1][2]
@@ -88,6 +100,19 @@ function spawn_item(data)
    -- lua indexes from 1 not 0 as Python does
    pos.Pos.X = data["position"][1]
    pos.Pos.Y = data["position"][2]
+
+   --closest free position
+   --the minus is the unary operator, dereferencing pointers
+   pos_s = map:FreeGridInRange(20, -pos.Pos)
+   --print(dump(pos_s))
+   -- table length
+   if #pos_s < 1 then
+      return
+   else
+      pos.Pos = -pos_s[1]
+   --   print(pos.Pos.X)
+   --   print(pos.Pos.Y)
+   end
 
    render = Renderable()
    render.Color.R = data["renderable"][1][1]
