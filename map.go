@@ -179,7 +179,7 @@ func (m *gamemap) findGridInRange(dist int, pos position) []distpos {
 	return coords;
 }
 
-func (m *gamemap) freeGridInRange(dist int, pos position) []position {
+func (m *gamemap) FreeGridInRange(dist int, pos position) []position {
 	coords := m.findGridInRange(dist, pos)
 
 	free := m.freetiles

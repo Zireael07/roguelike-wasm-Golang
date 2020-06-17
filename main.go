@@ -130,7 +130,7 @@ func (g *game) ECSInit() {
 	player.AddComponent("player", PlayerComponent{})
 
 	//closest free position to 1,1
-	pos_s := g.Map.freeGridInRange(20, position{X:1, Y: 1})
+	pos_s := g.Map.FreeGridInRange(20, position{X:1, Y: 1})
 	if len(pos_s) < 1 {
 		//TODO: assert/bail out if no grid in range
 		log.Printf("Could not place player")
@@ -179,7 +179,12 @@ func (g *game) ECSInit() {
 			//gun
 			it := &GameEntity{}
 			it.SetupComponentsMap()
-			it.AddComponent("position", PositionComponent{Pos:position{X:4, Y:4}})
+			//closest free position
+			pos_s := g.Map.FreeGridInRange(20, position{X:4, Y: 4})
+			if len(pos_s) < 1 {
+				return
+			}
+			it.AddComponent("position", PositionComponent{Pos:pos_s[0]})
 			it.AddComponent("renderable", RenderableComponent{Color{0,255,255,255}, '('})
 			it.AddComponent("item", ItemComponent{})
 			it.AddComponent("name", NameComponent{"Pistol"})
@@ -188,7 +193,12 @@ func (g *game) ECSInit() {
 		} else if sel == "Medkit" {
 			it := &GameEntity{}
 			it.SetupComponentsMap()
-			it.AddComponent("position", PositionComponent{Pos:position{X:6, Y:6}})
+			//closest free position
+			pos_s := g.Map.FreeGridInRange(20, position{X:6, Y: 6})
+			if len(pos_s) < 1 {
+				return
+			}
+			it.AddComponent("position", PositionComponent{Pos:pos_s[0]})
 			it.AddComponent("renderable", RenderableComponent{Color{255,0,0,255}, '!'})
 			it.AddComponent("item", ItemComponent{})
 			it.AddComponent("name", NameComponent{"Medkit"})
