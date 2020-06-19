@@ -12,8 +12,9 @@ import (
 
 //just a stub for now
 type game struct {
-	Term *terminal;
+	Term *terminal
 	Map *gamemap
+	camera *Camera
 	entities []*GameEntity ///for ECS
 	MessageLog []Message
 }
@@ -32,6 +33,10 @@ func (g *game) GameInit() {
 	//m.generateArenaMap()
 	m.generatePerlinMap()
 	g.Map = m
+
+	//camera
+	c := &Camera{20,20,1,1,0,0}
+	g.camera = c
 
 	g.LuaInit()
 	//Lua generates the map, among other things
@@ -244,14 +249,22 @@ func (g *game) clearFOV() {
 }
 
 func (g *game) renderMap(){
+	//camera
+	width_st := g.camera.getWidthStart()
+	width_end := g.camera.getWidthEnd(g.Map)
+	height_st := g.camera.getHeightStart()
+	height_end := g.camera.getHeightEnd(g.Map)
+
+
 	for x := 0; x <= g.Map.width; x++ {
 		for y := 0; y <= g.Map.height; y++ {
-			if (g.Map.tiles[x][y].visible){
-				g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, g.Map.tiles[x][y].fgColor, Color{0,0,0,255}, true)
-			} else if (g.Map.tiles[x][y].explored) {
-				g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, Color{120,120,120,255},Color{0,0,0,255}, true)
-			}
-			
+			if x >= width_st && x <= width_end && y >= height_st && y <= height_end {
+				if (g.Map.tiles[x][y].visible){
+					g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, g.Map.tiles[x][y].fgColor, Color{0,0,0,255}, true)
+				} else if (g.Map.tiles[x][y].explored) {
+					g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, Color{120,120,120,255},Color{0,0,0,255}, true)
+				}
+			}			
 		}
 	}
 }
@@ -265,17 +278,31 @@ func (g *game) render(){
 
 	g.renderMap()
 
+	//camera
+	width_st := g.camera.getWidthStart()
+	width_end := g.camera.getWidthEnd(g.Map)
+	height_st := g.camera.getHeightStart()
+	height_end := g.camera.getHeightEnd(g.Map)
+
 
 	// Render all renderable entities to the screen
 	for _, e := range g.entities {
 		if e != nil {
 			if e.HasComponents([]string{"position", "renderable"}) {
-				if !e.HasComponents([]string{"backpack"}){
-					pos, _ := e.Components["position"].(PositionComponent)
-					rend, _ := e.Components["renderable"].(RenderableComponent)
-					if (g.Map.tiles[pos.Pos.X][pos.Pos.Y].visible) {
-						g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
-					}
+				pos, _ := e.Components["position"].(PositionComponent)
+				//if not in camera view
+				if pos.Pos.X < width_st || pos.Pos.X > width_end || pos.Pos.Y < height_st || pos.Pos.Y > height_end {
+					continue
+				}
+
+				if e.HasComponents([]string{"backpack"}){
+					continue
+				}
+
+
+				rend, _ := e.Components["renderable"].(RenderableComponent)
+				if (g.Map.tiles[pos.Pos.X][pos.Pos.Y].visible) {
+					g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
 				}
 			}
 		}
@@ -545,6 +572,8 @@ func (g *game) onPlayerMove(posComp PositionComponent){
 
 	//g.player = pos
 	g.Term.Clear()
+	//camera!!!
+	g.camera.update(posComp.Pos)
 	//recalc FOV
 	g.clearFOV()
 	var opaque VB = func(x,y int32) bool {
