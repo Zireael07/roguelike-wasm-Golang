@@ -28,7 +28,7 @@ func (g *game) GameInit() {
 	//init RNG
 	rand.Seed(time.Now().UnixNano())
 
-	m := &gamemap{width: 20, height:20}
+	m := &gamemap{width: 30, height:30}
 	m.InitMap()
 	//m.generateArenaMap()
 	m.generatePerlinMap()
