@@ -255,18 +255,29 @@ func (g *game) renderMap(){
 	height_st := g.camera.getHeightStart()
 	height_end := g.camera.getHeightEnd(g.Map)
 
+	// for x := 0; x <= g.Map.width; x++ {
+	// 	for y := 0; y <= g.Map.height; y++ {
+	// 		if x >= width_st && x <= width_end && y >= height_st && y <= height_end {
 
-	for x := 0; x <= g.Map.width; x++ {
-		for y := 0; y <= g.Map.height; y++ {
-			if x >= width_st && x <= width_end && y >= height_st && y <= height_end {
-				if (g.Map.tiles[x][y].visible){
-					g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, g.Map.tiles[x][y].fgColor, Color{0,0,0,255}, true)
-				} else if (g.Map.tiles[x][y].explored) {
-					g.Term.SetCell(x, y, g.Map.tiles[x][y].glyph, Color{120,120,120,255},Color{0,0,0,255}, true)
+	//based on https://bfnightly.bracketproductions.com/rustbook/chapter_41.html
+	//x,y are screen coordinates, tx, ty are map (tile) coordinates
+	y := 0
+	for ty := height_st; ty <= height_end; ty++ {
+		x := 0
+		for tx := width_st; tx <= width_end; tx++ {
+			//if on map
+			if tx >= 0 && tx <= g.Map.width && ty >= 0 && ty <= g.Map.height {
+				if (g.Map.tiles[tx][ty].visible){
+					g.Term.SetCell(x, y, g.Map.tiles[tx][ty].glyph, g.Map.tiles[tx][ty].fgColor, Color{0,0,0,255}, true)
+				} else if (g.Map.tiles[tx][ty].explored) {
+					g.Term.SetCell(x, y, g.Map.tiles[tx][ty].glyph, Color{120,120,120,255},Color{0,0,0,255}, true)
 				}
-			}			
+			}
+
+			x += 1
 		}
-	}
+		y += 1
+	} 
 }
 
 
@@ -299,10 +310,10 @@ func (g *game) render(){
 					continue
 				}
 
-
 				rend, _ := e.Components["renderable"].(RenderableComponent)
 				if (g.Map.tiles[pos.Pos.X][pos.Pos.Y].visible) {
-					g.Term.SetCell(pos.Pos.X, pos.Pos.Y, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
+					//subtract cam start to draw in screen space
+					g.Term.SetCell(pos.Pos.X-width_st, pos.Pos.Y-height_st, rend.Glyph, rend.Color, Color{0,0,0,255}, true)
 				}
 			}
 		}
@@ -618,21 +629,31 @@ func (g *game) HandlePlayerEvent() () {
 	//log.Printf("Event: %v", in);
 	if in.mouse {
 		pos := position{X: in.mouseX, Y: in.mouseY}
+
+		//camera
+		width_st := g.camera.getWidthStart()
+		//width_end := g.camera.getWidthEnd(g.Map)
+		height_st := g.camera.getHeightStart()
+		//height_end := g.camera.getHeightEnd(g.Map)
+
+		map_pos := position{X: pos.X+width_st, Y: pos.Y+height_st}
+
 		switch in.button {
 		//no button
 		case -1:
 			g.Term.Clear()
 			g.render()
 			g.Term.highlightPos(pos)
-			g.describePosition(pos)
+			g.describePosition(map_pos)
 			g.Term.Flush()
 		//left
 		case 0:
 			// move player
 			//TODO: get player entity via a Player component/tag
-			pl_posComponent, _ := g.entities[0].Components["position"].(PositionComponent) 
-			if (pl_posComponent.Pos.Distance(pos) < 2){
-				dir := pos.sub(pl_posComponent.Pos)
+			pl_posComponent, _ := g.entities[0].Components["position"].(PositionComponent)
+
+			if (pl_posComponent.Pos.Distance(map_pos) < 2){
+				dir := map_pos.sub(pl_posComponent.Pos)
 				//log.Printf("direction: %v", dir)
 				g.Term.Clear()
 				g.MovePlayer(g.entities[0], dir)
