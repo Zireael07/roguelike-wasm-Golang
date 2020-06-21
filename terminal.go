@@ -176,6 +176,7 @@ var MapNames = map[rune]string{
 	'§':  "fog",
 	'+':  "door",
 	'.':  "dot",
+	'♣':  "tree",
 	'"':  "foliage",
 	'•':  "tick",
 	'●':  "rock",

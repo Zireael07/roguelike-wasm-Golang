@@ -344,6 +344,9 @@ func (g *game) getTerrainName(terrain *maptile) string {
 	if terrain.glyph == '.' && terrain.fgColor == ColorGray {
 		ret = "floor"
 	}
+	if terrain.glyph == '♣' {
+		ret = "tree"
+	}
 	return ret
 }
 

@@ -143,7 +143,7 @@ func (m *gamemap) generatePerlinMap() {
 	for x := 0; x <= m.width; x++ {
 		for y := 0; y <= m.height; y++ {
 			if heightmap[x][y] > 0 {
-				m.tiles[x][y] = &maptile{glyph: '#', fgColor: Color{255,255,255, 255}, blocks_move: true, visible: false}
+				m.tiles[x][y] = &maptile{glyph: '♣', fgColor: Color{0,255,0, 255}, blocks_move: true, visible: false}
 			} else {
 				m.tiles[x][y] = &maptile{glyph: '.', fgColor: Color{255,255,255, 255}, blocks_move: false, visible: false}
 				free := &freetile{tile: m.tiles[x][y], pos: position{X:x, Y:y}}
