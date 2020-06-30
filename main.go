@@ -32,6 +32,9 @@ func (g *game) GameInit() {
 	m.InitMap()
 	//m.generateArenaMap()
 	m.generatePerlinMap()
+	m.RectangleDetect()
+
+
 	g.Map = m
 
 	//camera

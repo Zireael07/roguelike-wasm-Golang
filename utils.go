@@ -54,3 +54,10 @@ func moveToFront(needle *GameEntity, haystack []*GameEntity) []*GameEntity {
 	}
 	return append(haystack, prev)
 }
+
+func prependInt(x []int, y int) []int {
+    x = append(x, 0)
+    copy(x[1:], x)
+    x[0] = y
+    return x
+}
