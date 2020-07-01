@@ -21,6 +21,12 @@ type freetile struct {
 	pos position
 }
 
+//TODO: put in map_common.go or some such?
+type Rect struct {
+	pos1 position
+	pos2 position
+}
+
 
 //because 'map' in Go is a data structure...
 type gamemap struct {
@@ -28,6 +34,7 @@ type gamemap struct {
 	height int
 	tiles [][]*maptile //2d array/slice of tiles, nothing unusual
 	freetiles []*freetile //list of all free tiles
+	submaps []Rect
 }
 
 func (t *maptile) IsWall() bool {
@@ -202,16 +209,11 @@ func (m *gamemap) GetUnbrokenFloors(num_floors [][]int) [][]int {
 	return floors
 }
 
-type Rect struct {
-	pos1 position
-	pos2 position
-}
 
 type RectArea struct {
 	area int
 	rect Rect
 }
-
 
 //step two of finding biggest rectangle
 func (m *gamemap) LargestAreaRect(floors [][]int) RectArea {
@@ -221,7 +223,7 @@ func (m *gamemap) LargestAreaRect(floors [][]int) RectArea {
 	for y := len(floors)-1; y >= 0; y-- {
 		//max rectangle
 		rectdata := largestRectangleArea(floors[y], y)
-		log.Printf("Rect: %v, y: %d", rectdata, y)
+		//log.Printf("Rect: %v, y: %d", rectdata, y)
 		rects = append(rects, rectdata)
 	}
 
@@ -277,12 +279,15 @@ func largestRectangleArea(heights []int, row int) RectArea {
 func (m *gamemap) RectangleDetect() {
 	floors := m.NumUnbrokenFloors_columns()
 	row_floors := m.GetUnbrokenFloors(floors)
-
 	//log.Printf("%v", row_floors)
 
 	largest := m.LargestAreaRect(row_floors)
 	log.Printf("%v", largest.rect)
 	m.debugLargestArea(largest.rect)
+
+	//add to submaps
+	m.submaps = append(m.submaps, largest.rect)
+	log.Printf("Submaps: %v", m.submaps)
 }
 
 func (m *gamemap) debugLargestArea(rect Rect) {
