@@ -66,6 +66,11 @@ func (l *Line) collinear_line(line Line) bool {
     return l.collinear_p(line.xi, line.yi) && l.collinear_p(line.xf, line.yf)
 }
 
+func (l Line) deepcopy() Line {
+  n := Line{xi: l.xi, yi: l.yi, xf: l.xf, yf:l.yf}
+  return n
+}
+
 type intpair struct {
 	a int32
 	b int32
@@ -83,12 +88,15 @@ func (v *View) add_shallow_bump(x,y int32) {
 	v.shallow_line.xf = x;
   v.shallow_line.yf = y;
   v.shallow_bumps = append(v.shallow_bumps, intpair{x, y})
+  // move to index 0
+  copy(v.shallow_bumps[1:], v.shallow_bumps)
+  v.shallow_bumps[0] = intpair{x, y}
   
 	//Golang iteration
 	for _, bump := range v.steep_bumps {
 		if v.shallow_line.above_p(bump.a, bump.b) {
-		v.shallow_line.xi = bump.a;
-		v.shallow_line.yi = bump.b;
+		  v.shallow_line.xi = bump.a;
+		  v.shallow_line.yi = bump.b;
 		}
 	}
 }
@@ -98,14 +106,24 @@ func (v *View) add_steep_bump(x, y int32) {
   v.steep_line.yf = y;
   //v.steep_bump = ViewBump{x,y, v.steep_bump}
   v.steep_bumps = append(v.steep_bumps, intpair{x, y})
+  // move to index 0
+  copy(v.steep_bumps[1:], v.steep_bumps)
+  v.steep_bumps[0] = intpair{x,y}
 
-
-	for _, bump := range v.steep_bumps {
+	for _, bump := range v.shallow_bumps {
 		if v.steep_line.below_p(bump.a, bump.b) {
-		v.steep_line.xi = bump.a;
-		v.steep_line.yi = bump.b;
+		  v.steep_line.xi = bump.a;
+		  v.steep_line.yi = bump.b;
 		}
 	}
+}
+
+//based on https://rosettacode.org/wiki/Deepcopy#Go
+func (v View) deepcopy() View {
+  n := View{shallow_line: v.shallow_line.deepcopy(), steep_line: v.steep_line.deepcopy(), 
+    shallow_bumps: append([]intpair{}, v.shallow_bumps...),
+    steep_bumps: append([]intpair{}, v.steep_bumps...)} 
+  return n
 }
 
 //First class functions allow the FOV code internals to not care about the map struct at all
@@ -192,16 +210,18 @@ func visit_coord(visited HashSet, start_x, start_y, dir_x, dir_y int32, vision_b
   target := intpair{start_x + (offset_x * dir_x), start_y + (offset_y * dir_y)};
 
   //prevent going out of map
-  if (in_map(target.a, target.b) == false) {
+  //if (in_map(target.a, target.b) == false) {
     //log.Printf("Target %d %d out of map, abort", target.a, target.b)
-    return
-  }
+  //  return
+  //}
 
   //log.Printf("target: %d %d", target.a, target.b)
   key := fmt.Sprintf("%d,%d", target.a, target.b) 
   if !visited.has(key) {
     visited.add(key);
-    visit_effect(target.a, target.b);
+    if (in_map(target.a, target.b) == true) {
+      visit_effect(target.a, target.b);
+    }
   }
 
   if vision_blocked(target.a, target.b) {
@@ -230,25 +250,35 @@ func visit_coord(visited HashSet, start_x, start_y, dir_x, dir_y int32, vision_b
       } else {
         // Neither line intersects this location but it blocks sight, so we have
         // to split this view into two views.
+        
+        //FIXME: I think this case doesn't work
         //log.Printf("Case 4")
         //deep copy
-        new_view := active_views[view_index]
-        new_view.shallow_bumps = make([]intpair, len(active_views[view_index].shallow_bumps))
-        copy(new_view.shallow_bumps, active_views[view_index].shallow_bumps)
-        new_view.steep_bumps = make([]intpair, len(active_views[view_index].steep_bumps))
-        copy(new_view.steep_bumps, active_views[view_index].steep_bumps)
+        // new_view := active_views[view_index]
+        // new_view.shallow_bumps = make([]intpair, len(active_views[view_index].shallow_bumps))
+        // copy(new_view.shallow_bumps, active_views[view_index].shallow_bumps)
+        // new_view.steep_bumps = make([]intpair, len(active_views[view_index].steep_bumps))
+        // copy(new_view.steep_bumps, active_views[view_index].steep_bumps)
         
+        new_view := active_views[view_index].deepcopy()
+        //log.Printf("%v", new_view)
+
         //insert the new view
-        active_views = append(active_views, View{})
-        copy(active_views[view_index+1:], active_views[view_index:])
+        active_views = append(active_views, new_view)
+        copy(active_views[view_index+1:], active_views)
         active_views[view_index] = new_view
+        //log.Printf("%v", active_views[view_index])
 
         // We add the shallow bump on the farther view first, so that if it gets
         // killed we don't have to change where we add the steep bump and check
         active_views[view_index + 1].add_shallow_bump(top_left.a, top_left.b);
+        //log.Printf("%v", active_views[view_index+1])
         check_view(active_views, view_index + 1);
+        //log.Printf("Check view + 1")
         active_views[view_index].add_steep_bump(bottom_right.a, bottom_right.b);
         check_view(active_views, view_index);
+        //log.Printf("%v", active_views[view_index])
+        //log.Printf("Check view")
       }
     }
 }
@@ -262,7 +292,6 @@ func check_view(active_views []View, view_index int) {
     steep_line := active_views[view_index].steep_line;
     
     if shallow_line.collinear_line(steep_line) && (shallow_line.collinear_p(0, 1) || shallow_line.collinear_p(1, 0)) {
-      //TODO: remove view from list!!!!
       //remove from slice
       i := view_index
       active_views = append(active_views[:i], active_views[i+1:]...)
