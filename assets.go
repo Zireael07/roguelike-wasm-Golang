@@ -456,11 +456,13 @@ Scripts = map[string][]byte{}
 
 //Load script file to string
 Luascript, _ := getContent("./hello.lua") // relative path to make GH version work
+Testscript, _ := getContent("./test.lua")
 //Luascript := `print("hello WASM from lua")`
 
 //luckily, string to byteslice is easy
 //storing as byteslice is future-proof (when the script is actually loaded from file and not from string)
 Scripts["hello"] = []byte(Luascript)
+Scripts["test"] = []byte(Testscript)
 
 
 }

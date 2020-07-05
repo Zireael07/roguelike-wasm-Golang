@@ -51,8 +51,14 @@ func (g *game) Add(who *GameEntity) {
 }
 
 func (g *game) LuaInit(){
-	L := lua.NewState()
-	defer L.Close()
+	luaVM := lua.NewState()
+	//defer L.Close()
+	defer func() {
+		luaVM.Close()
+		log.Println("Lua VM has been closed")
+	}()
+
+
 	// doFile doesn't work on WASM
 	//if err := L.DoFile("hello.lua"); err != nil {
 
@@ -61,33 +67,57 @@ func (g *game) LuaInit(){
 	//test Lua->Go interop
 	//ent := &GameEntity{}
 	//ent.setupComponentsMap() //crucial!
-	L.SetGlobal("entities", luar.New(L, g))
+	luaVM.SetGlobal("entities", luar.New(luaVM, g))
 
-	L.SetGlobal("Ent", luar.NewType(L, GameEntity{}))
+	luaVM.SetGlobal("Ent", luar.NewType(luaVM, GameEntity{}))
 	//L.SetGlobal("ent", luar.New(L, ent))
 	//components
-	L.SetGlobal("Position", luar.NewType(L, PositionComponent{}))
-	L.SetGlobal("Renderable", luar.NewType(L, RenderableComponent{}))
-	L.SetGlobal("Stats", luar.NewType(L, StatsComponent{}))
-	L.SetGlobal("Name", luar.NewType(L, NameComponent{}))
-	L.SetGlobal("Blocker", luar.NewType(L, BlockerComponent{}))
-	L.SetGlobal("NPC", luar.NewType(L, NPCComponent{}))
-	L.SetGlobal("Item", luar.NewType(L, ItemComponent{}))
-	L.SetGlobal("Medkit", luar.NewType(L, MedkitComponent{}))
+	luaVM.SetGlobal("Position", luar.NewType(luaVM, PositionComponent{}))
+	luaVM.SetGlobal("Renderable", luar.NewType(luaVM, RenderableComponent{}))
+	luaVM.SetGlobal("Stats", luar.NewType(luaVM, StatsComponent{}))
+	luaVM.SetGlobal("Name", luar.NewType(luaVM, NameComponent{}))
+	luaVM.SetGlobal("Blocker", luar.NewType(luaVM, BlockerComponent{}))
+	luaVM.SetGlobal("NPC", luar.NewType(luaVM, NPCComponent{}))
+	luaVM.SetGlobal("Item", luar.NewType(luaVM, ItemComponent{}))
+	luaVM.SetGlobal("Medkit", luar.NewType(luaVM, MedkitComponent{}))
 
 	//map
-	L.SetGlobal("map", luar.New(L, g.Map))
-	L.SetGlobal("Color", luar.NewType(L, Color{}))
+	luaVM.SetGlobal("map", luar.New(luaVM, g.Map))
+	luaVM.SetGlobal("Color", luar.NewType(luaVM, Color{}))
 
 	//this contains a byteslice
 	script := Scripts["hello"]
 
-	if err := L.DoString(string(script)); err != nil {
+	err := luaVM.DoString(string(script))
+	if err != nil {
 		panic(err)
 	}
 
 	//debug
 	log.Printf("Entities: %d", len(g.entities))
+
+	//figured it out thanks to https://otm.github.io/2015/07/embedding-lua-in-go/
+	script = Scripts["test"]
+	if err := luaVM.DoString(string(script)); err != nil {
+	//if err := luaVM.DoString(`function hello() print("Hello from go in Lua!") end`); err != nil {
+		panic(err)
+	}
+
+	//test calling Lua from Go
+
+	fn := luaVM.GetGlobal("hello")
+	log.Printf("fn: %v", fn)
+
+	err = luaVM.CallByParam(lua.P{
+		Fn:   fn,
+		NRet: 0,
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
 
 	// var data NameComponent
 	// if err := gluamapper.Map(L.GetGlobal("data").(*lua.LTable), &data); err != nil {
