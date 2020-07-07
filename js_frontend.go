@@ -45,28 +45,30 @@ func newGame(term *terminal) {
 	g.GameInit()
 	//recalc FOV
 	g.clearFOV()
-	var opaque VB = func(x,y int32) bool {
-		//paranoia
-		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
-			return g.Map.tiles[x][y].IsWall() 
-		} else 
-		{ return true } 
-	}
-	var visit VE = func(x,y int32) {
-		//paranoia
-		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
-			g.Map.tiles[x][y].visible = true
-			g.Map.tiles[x][y].explored = true
-		}
-	}
-	var inmap IM = func(x,y int32) bool {
-		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height){
-			return true
-		} else { return false } 
-	}
+	//g.FOV.SetAllInvisible()
+	// var opaque VB = func(x,y int32) bool {
+	// 	//paranoia
+	// 	if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
+	// 		return g.Map.tiles[x][y].IsWall() 
+	// 	} else 
+	// 	{ return true } 
+	// }
+	// var visit VE = func(x,y int32) {
+	// 	//paranoia
+	// 	if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
+	// 		g.Map.tiles[x][y].visible = true
+	// 		g.Map.tiles[x][y].explored = true
+	// 	}
+	// }
+	// var inmap IM = func(x,y int32) bool {
+	// 	if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height){
+	// 		return true
+	// 	} else { return false } 
+	// }
 	//FOV for player position (player is always #0)
 	pl_pos := g.entities[0].Components["position"].(PositionComponent).Pos
-	g.pp_FOV(int32(pl_pos.X), int32(pl_pos.Y), 5, opaque, visit, inmap)
+	//g.pp_FOV(int32(pl_pos.X), int32(pl_pos.Y), 5, opaque, visit, inmap)
+	g.FOV.RayCast(pl_pos.X, pl_pos.Y, g.Map)
 	//camera!!
 	g.camera.update(pl_pos)
 	//make the game run!

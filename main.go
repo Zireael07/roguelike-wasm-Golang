@@ -17,6 +17,7 @@ type game struct {
 	camera *Camera
 	entities []*GameEntity ///for ECS
 	MessageLog []Message
+	FOV FieldOfVision
 }
 
 type Message struct {
@@ -36,6 +37,10 @@ func (g *game) GameInit() {
 
 
 	g.Map = m
+
+	//FOV
+	g.FOV.InitializeFOV()
+	g.FOV.SetTorchRadius(5)
 
 	//camera
 	c := &Camera{20,20,1,1,0,0}
@@ -273,12 +278,13 @@ func (g *game) renderBar(x,y,width int, value, max_value float32, barColor, back
 }
 
 func (g *game) clearFOV() {
-	for x := 0; x < g.Map.width; x++ {
-		for y := 0; y < g.Map.height; y++ {
-			//log.Printf("Clear %d %d", x, y)
-			g.Map.tiles[x][y].visible = false
-		}
-	}
+	// for x := 0; x < g.Map.width; x++ {
+	// 	for y := 0; y < g.Map.height; y++ {
+	// 		//log.Printf("Clear %d %d", x, y)
+	// 		g.Map.tiles[x][y].visible = false
+	// 	}
+	// }
+	g.FOV.SetAllInvisible(g.Map)
 }
 
 func (g *game) renderMap(){
@@ -623,26 +629,27 @@ func (g *game) onPlayerMove(posComp PositionComponent){
 	g.camera.update(posComp.Pos)
 	//recalc FOV
 	g.clearFOV()
-	var opaque VB = func(x,y int32) bool {
-		//paranoia
-		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
-			return g.Map.tiles[x][y].IsWall() 
-		} else 
-		{ return true } 
-	}
-	var visit VE = func(x,y int32) {
-		//paranoia
-		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
-			g.Map.tiles[x][y].visible = true
-			g.Map.tiles[x][y].explored = true
-		}
-	}
-	var inmap IM = func(x,y int32) bool {
-		if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height){
-			return true
-		} else { return false } 
-	}
-	g.pp_FOV(int32(posComp.Pos.X), int32(posComp.Pos.Y), 5, opaque, visit, inmap)	
+	// var opaque VB = func(x,y int32) bool {
+	// 	//paranoia
+	// 	if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
+	// 		return g.Map.tiles[x][y].IsWall() 
+	// 	} else 
+	// 	{ return true } 
+	// }
+	// var visit VE = func(x,y int32) {
+	// 	//paranoia
+	// 	if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height) {
+	// 		g.Map.tiles[x][y].visible = true
+	// 		g.Map.tiles[x][y].explored = true
+	// 	}
+	// }
+	// var inmap IM = func(x,y int32) bool {
+	// 	if x >= 0 && y >= 0 && x <= int32(g.Map.width) && y <= int32(g.Map.height){
+	// 		return true
+	// 	} else { return false } 
+	// }
+	//g.pp_FOV(int32(posComp.Pos.X), int32(posComp.Pos.Y), 5, opaque, visit, inmap)	
+	g.FOV.RayCast(posComp.Pos.X, posComp.Pos.Y, g.Map)
 
 }
 
