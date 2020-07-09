@@ -126,13 +126,9 @@ func (v View) deepcopy() View {
   return n
 }
 
-//First class functions allow the FOV code internals to not care about the map struct at all
-type VB func (int32, int32) bool
-type VE func (int32, int32)
-//is it in map?
-type IM func (int32, int32) bool
 
-//VB, VE, IM are functions (see above)
+
+//VB, VE, IM are functions (see fov.go)
 func check_quadrant(visited HashSet, start_x, start_y, dir_x, dir_y, extent_x, extent_y int32, 
   vision_blocked VB, visit_effect VE, in_map IM) {
 //   debug_assert!(dir_x == -1 || dir_x == 1);

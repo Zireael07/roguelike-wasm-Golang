@@ -10,9 +10,11 @@ type position struct {
 	Y int
 }
 
+//aka 'square radius'
 func (pos position) Distance(to position) int {
 	deltaX := Abs(to.X - pos.X)
 	deltaY := Abs(to.Y - pos.Y)
+	//longest distance on an axis
 	if deltaX > deltaY {
 		return deltaX
 	}
