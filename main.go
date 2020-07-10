@@ -31,10 +31,13 @@ func (g *game) GameInit() {
 
 	m := &gamemap{width: 30, height:30}
 	m.InitMap()
+	//actual mapgen
 	//m.generateArenaMap()
 	m.generatePerlinMap()
 	m.RectangleDetect()
-	m.GenerateBSP(4)
+	leafs := m.GenerateBSP(4)
+	rects := m.convertBSP(leafs)
+	m.paintRects(rects)
 
 	g.Map = m
 

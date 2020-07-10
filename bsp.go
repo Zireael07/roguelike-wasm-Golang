@@ -11,6 +11,17 @@ type subrect struct {
 	X, Y, W, H int //easier for BSP to work on W, H
 }
 
+type BSPLeaf struct {
+	subrect subrect
+	has_child bool
+}
+
+//setter
+func (l *BSPLeaf) setChild(val bool) {
+	//log.Printf("setting child to %v", val)
+	l.has_child = val
+}
+
 //helper functions
 func subMinSize(subroom subrect) int {
 	if subroom.W < subroom.H {
@@ -28,9 +39,13 @@ func subSplit(parent subrect, vertical bool, min_size int) (subrect, subrect, bo
 		splitCX := int(float32(parent.W) * splitPercentage)
 		splitCX2 := parent.W - splitCX
 		a, b := subrect{parent.X, parent.Y, splitCX, parent.H}, subrect{parent.X + splitCX, parent.Y, splitCX2, parent.H}
+		log.Printf("A: %v ; B: %v", a, b)
 
 		if subMinSize(a) <= min_size || subMinSize(b) <= min_size {
+			log.Printf("Leaf too small")
 			return a, b, false
+		} else {
+			return a, b, true
 		}
 
 		// // Line is attempting to start on a door
@@ -49,16 +64,19 @@ func subSplit(parent subrect, vertical bool, min_size int) (subrect, subrect, bo
 		// 	room.Set(parent.X+splitCX, ry, doorValue)
 		// 	break
 		// }
-
-		return a, b, true
+		
 	}
 
 	splitCY := int(float32(parent.H) * splitPercentage)
 	splitCY2 := parent.H - splitCY
 	a, b := subrect{parent.X, parent.Y, parent.W, splitCY}, subrect{parent.X, parent.Y + splitCY, parent.W, splitCY2}
+	log.Printf("A: %v ; B: %v", a, b)
 
 	if subMinSize(a) <= min_size || subMinSize(b) <= min_size {
+		log.Printf("Leaf too small")
 		return a, b, false
+	} else {
+		return a, b, true
 	}
 
 	// // Line is attempting to start on a door
@@ -82,7 +100,7 @@ func subSplit(parent subrect, vertical bool, min_size int) (subrect, subrect, bo
 }
 
 //meat of the generator
-func (m *gamemap) GenerateBSP(numSplits int) []subrect {
+func (m *gamemap) GenerateBSP(numSplits int) []BSPLeaf {
 	rect := Rect{pos1:position{X:0, Y:0}, pos2:position{m.width, m.height}}
 	
 	//if we have a submap act only in submap
@@ -90,7 +108,7 @@ func (m *gamemap) GenerateBSP(numSplits int) []subrect {
 		rect = m.submaps[0]
 	}
 
-	rooms := []subrect{subrect{rect.pos1.X, rect.pos1.Y, rect.pos2.X-rect.pos1.X, rect.pos2.Y-rect.pos1.Y}}
+	rooms := []BSPLeaf{BSPLeaf{subrect{rect.pos1.X, rect.pos1.Y, rect.pos2.X-rect.pos1.X, rect.pos2.Y-rect.pos1.Y}, false} }
 
 	attemptCount := 10
 	doneSplits := 0
@@ -103,20 +121,22 @@ func (m *gamemap) GenerateBSP(numSplits int) []subrect {
 		}
 
 		//random room choice
-		splitChoice := rooms[rand.Intn(len(rooms))]
+		splitID := rand.Intn(len(rooms))
+		splitChoice := rooms[splitID]
+		
 
-		// random choise
+		// random choice
 		split_vert := randBool()
 		//do we split horizontally or vertically?
 		//if width is 25% bigger than height, split vertically, and the converse for horizontal
-		if float32(splitChoice.W/splitChoice.H) > 1.25 {
+		if float32(splitChoice.subrect.W/splitChoice.subrect.H) > 1.25 {
 			split_vert = true
 		} else {
 			split_vert = false
 		}
 
 		// Do the split
-		a, b, success := subSplit(splitChoice, split_vert, 5)
+		a, b, success := subSplit(splitChoice.subrect, split_vert, 5)
 
 		//decrement attempts
 		attemptCount--
@@ -124,15 +144,21 @@ func (m *gamemap) GenerateBSP(numSplits int) []subrect {
 		if !success {
 			continue
 		} else {
-			//add the new room
-			rooms = append(rooms, a, b)
+			//mark earlier as having children
+			//why the eff splitChoice doesn't work?!
+			rooms[splitID].setChild(true)
 
-			for i, r := range rooms {
-				if r == splitChoice {
-					rooms = append(rooms[:i], rooms[i+1:]...)
-					break
-				}
-			}
+			//add the new rooms
+			leaf_a := BSPLeaf{a, false}
+			leaf_b := BSPLeaf{b, false}
+			rooms = append(rooms, leaf_a, leaf_b)
+
+			// for i, r := range rooms {
+			// 	if r == splitChoice {
+			// 		rooms = append(rooms[:i], rooms[i+1:]...)
+			// 		break
+			// 	}
+			// }
 
 			//count number of splits actually done
 			doneSplits++
@@ -141,6 +167,7 @@ func (m *gamemap) GenerateBSP(numSplits int) []subrect {
 
 
 	log.Printf("BSP rooms: %v ", rooms)
+
 	//return rooms list
 	return rooms
 }
