@@ -34,7 +34,7 @@ func (g *game) GameInit() {
 	//m.generateArenaMap()
 	m.generatePerlinMap()
 	m.RectangleDetect()
-
+	m.GenerateBSP(4)
 
 	g.Map = m
 

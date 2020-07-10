@@ -32,6 +32,14 @@ func randRange(min, max int) int {
 	return rand.Intn(max-min)+min
 }
 
+func randBool() bool {
+	r := rand.Float32()
+	if r >= .5 {
+		return true
+	}
+	return false
+}
+
 // from https://github.com/golang/go/wiki/SliceTricks
 // moveToFront moves needle to the front of haystack, in place if possible.
 func moveToFront(needle *GameEntity, haystack []*GameEntity) []*GameEntity {
