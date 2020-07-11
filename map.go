@@ -3,6 +3,7 @@ package main
 import (
 	"sort"
 	//"log"
+	"math" //for floor()
 )
 
 type maptile struct {
@@ -25,6 +26,12 @@ type Rect struct {
 	pos2 position
 }
 
+func (r *Rect) center() position {
+	X := math.Floor(float64((r.pos1.X+r.pos2.X)/2))
+	Y := math.Floor(float64((r.pos1.Y+r.pos2.Y)/2))
+
+	return position{X:int(X), Y:int(Y)}
+}
 
 //because 'map' in Go is a data structure...
 type gamemap struct {

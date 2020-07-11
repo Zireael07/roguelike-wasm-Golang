@@ -38,6 +38,7 @@ func (g *game) GameInit() {
 	leafs := m.GenerateBSP(4)
 	rects := m.convertBSP(leafs)
 	m.paintRects(rects)
+	m.buildDoors(rects)
 
 	g.Map = m
 

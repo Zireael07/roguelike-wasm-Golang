@@ -42,3 +42,42 @@ func (m *gamemap) paintRects(rects []Rect) {
 		}
 	}
 }
+
+func (m *gamemap) buildDoors(rects [] Rect) {
+	for _,r := range(rects) {
+		m.buildDoor(r)
+	}
+}
+
+func (m *gamemap) buildDoor(r Rect) {
+	cntr := r.center()
+
+	choices := [4]string{"north", "south", "east", "west"}
+
+	// copy it to avoid modifying while iterating
+	sel_choices := choices[0:4]
+
+	//TODO: check if exit leads anywhere
+
+	if len(sel_choices) > 0 {
+		wall_id := randRange(0,len(sel_choices))
+		wall := sel_choices[wall_id]
+
+		log.Printf("Wall: %v", wall)
+
+		//dummy
+		door_pos := cntr
+		//buildings are one tile smaller than the enclosing rect to ensure separation
+		if wall == "north" {
+			door_pos = position{X:cntr.X, Y:r.pos1.Y+1}
+		} else if wall == "south" {
+			door_pos = position{X:cntr.X, Y:r.pos2.Y-1}
+		} else if wall == "east" {
+			door_pos = position{X:r.pos2.X-1, Y:cntr.Y}
+		} else if wall == "west" {
+			door_pos = position{X:r.pos1.X+1, Y:cntr.Y}
+		}
+
+		m.tiles[door_pos.X][door_pos.Y] = &maptile{glyph: '+', fgColor: Color{99,43,0,255}, blocks_move: false, visible: false}
+	}
+}
