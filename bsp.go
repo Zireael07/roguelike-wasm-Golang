@@ -41,29 +41,13 @@ func subSplit(parent subrect, vertical bool, min_size int) (subrect, subrect, bo
 		a, b := subrect{parent.X, parent.Y, splitCX, parent.H}, subrect{parent.X + splitCX, parent.Y, splitCX2, parent.H}
 		log.Printf("A: %v ; B: %v", a, b)
 
+		//TODO: Can we check for collisions somehow here?
 		if subMinSize(a) <= min_size || subMinSize(b) <= min_size {
 			log.Printf("Leaf too small")
 			return a, b, false
 		} else {
 			return a, b, true
 		}
-
-		// // Line is attempting to start on a door
-		// if doorValue != wallValue && doorValue != 0 && (room.Get(parent.X+splitCX, parent.Y) == doorValue || room.Get(parent.X+splitCX, parent.Y+parent.H) == doorValue) {
-		// 	return a, b, false
-		// }
-
-		//room.DrawLine(parent.X+splitCX, parent.Y+1, parent.X+splitCX, parent.Y+parent.H-1, wallValue, 1, false)
-
-		// Place door
-		// for i := 0; i < 100; i++ {
-		// 	ry := parent.Y + 1 + rand.Intn(parent.H-1)
-		// 	if room.Get(parent.X+splitCX-1, ry) == wallValue || room.Get(parent.X+splitCX+1, ry) == wallValue {
-		// 		continue
-		// 	}
-		// 	room.Set(parent.X+splitCX, ry, doorValue)
-		// 	break
-		// }
 		
 	}
 
@@ -78,23 +62,6 @@ func subSplit(parent subrect, vertical bool, min_size int) (subrect, subrect, bo
 	} else {
 		return a, b, true
 	}
-
-	// // Line is attempting to start on a door
-	// if doorValue != wallValue && doorValue != 0 && (room.Get(parent.X, parent.Y+splitCY) == doorValue || room.Get(parent.X+parent.W, parent.Y+splitCY) == doorValue) {
-	// 	return a, b, false
-	// }
-
-	//room.DrawLine(parent.X+1, parent.Y+splitCY, parent.X+parent.W-1, parent.Y+splitCY, wallValue, 1, false)
-
-	// Create doors somewhere in the lines
-	// for i := 0; i < 100; i++ {
-	// 	rx := parent.X + 1 + rand.Intn(parent.W-1)
-	// 	if room.Get(rx, parent.Y+splitCY-1) == wallValue || room.Get(rx, parent.Y+splitCY+1) == wallValue {
-	// 		continue
-	// 	}
-	// 	room.Set(rx, parent.Y+splitCY, doorValue)
-	// 	break
-	// }
 
 	return a, b, true
 }

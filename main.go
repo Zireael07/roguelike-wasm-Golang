@@ -37,8 +37,8 @@ func (g *game) GameInit() {
 	m.RectangleDetect()
 	leafs := m.GenerateBSP(4)
 	rects := m.convertBSP(leafs)
-	m.paintRects(rects)
-	m.buildDoors(rects)
+	buildings := m.paintRects(rects)
+	m.buildDoors(buildings)
 
 	g.Map = m
 
