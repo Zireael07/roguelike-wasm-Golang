@@ -581,6 +581,12 @@ func (g *game) MovePlayer(ent *GameEntity, dir position){
 	//log.Printf("Move %v", dir)
 	posComponent, _ := ent.Components["position"].(PositionComponent)
 	tg := position{posComponent.Pos.X+dir.X, posComponent.Pos.Y+dir.Y}
+
+	//ignore attempts to move to invalid tiles
+	if !tg.isValid(g) {
+		return
+	}
+
 	//check for blocked tiles
 	if g.Map.tiles[tg.X][tg.Y].IsWall(){
 		return
@@ -701,7 +707,12 @@ func (g *game) HandlePlayerEvent() () {
 			//TODO: get player entity via a Player component/tag
 			pl_posComponent, _ := g.entities[0].Components["position"].(PositionComponent)
 
+			//check for being in map bounds
+			if (!map_pos.isValid(g)) {
+				return
+			}
 			if (pl_posComponent.Pos.Distance(map_pos) < 2){
+				
 				dir := map_pos.sub(pl_posComponent.Pos)
 				//log.Printf("direction: %v", dir)
 				g.Term.Clear()
